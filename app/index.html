@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<script src='https://azlejs.com/v2/azle.min.js'></script>
+</head>
+
+<body>
+</body>
+</html>
+
+<script>
+
+create_azle(function() {
+
+az.load_script('scripts/main.js')
+
+az.style_body({
+    "background" : "#141414"
+})
+
+az.add_sections({
+    "this_class" : "main_section",
+    "sections" : 1
+})
+
+az.style_sections('main_section', 1, {
+    "background" : "darkslategrey"
+})
+
+az.add_button('main_section', 1, {
+   "this_class" : "option_button",
+   "text" : "SCRAPE ARXIV"
+})
+
+az.add_event('option_button', 1, {
+    "type" : "click",
+    "function" : function() {
+        parse_arxiv_pdf()
+    }
+})
+
+az.add_button('main_section', 1, {
+   "this_class" : "option_button",
+   "text" : "RUN WORD2VEC"
+})
+
+az.add_event('option_button', 2, {
+    "type" : "click",
+    "function" : function() {
+        run_word2vec()
+    }
+})
+
+az.all_style_button('option_button', {
+    "margin" : "10px",
+    "width" : "auto"
+})
+
+})
+
+</script>
