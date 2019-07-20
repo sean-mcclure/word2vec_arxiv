@@ -15,8 +15,11 @@ create_azle(function() {
 
 az.load_script('scripts/main.js')
 
+az.load_font('Asap')
+
 az.style_body({
-    "background" : "#141414"
+    "background" : "#141414",
+    "font-family" : "Asap"
 })
 
 az.add_sections({
@@ -25,37 +28,132 @@ az.add_sections({
 })
 
 az.style_sections('main_section', 1, {
-    "background" : "darkslategrey"
+    "background" : "darkslategrey",
+    "height" : "auto"
 })
 
-az.add_button('main_section', 1, {
-   "this_class" : "option_button",
-   "text" : "SCRAPE ARXIV"
+az.add_layout('main_section', 1, {
+    "this_class" : "hold_elements",
+    "row_class" : "hold_elements_rows",
+    "cell_class" : "hold_elements_cells",
+    "number_of_rows" : 3,
+    "number_of_columns" : 2
 })
 
-az.add_event('option_button', 1, {
-    "type" : "click",
-    "function" : function() {
-        parse_arxiv_pdf()
-    }
+az.style_layout('hold_elements', 1, {
+    "border" : 0
 })
 
-az.add_button('main_section', 1, {
-   "this_class" : "option_button",
-   "text" : "RUN WORD2VEC"
+az.style_layout('hold_elements_cells', 1, {
+    "colspan" : 2
 })
 
-az.add_event('option_button', 2, {
-    "type" : "click",
-    "function" : function() {
-        run_word2vec()
-    }
+az.style_layout('hold_elements_cells', 4, {
+    "colspan" : 2
 })
 
-az.all_style_button('option_button', {
-    "margin" : "10px",
+az.all_style_layout('hold_elements_cells', {
+    "halign" : "center"
+})
+
+az.add_image('hold_elements_cells', 1, {
+    "this_class" : "logo",
+    "image_path" : "https://pbs.twimg.com/profile_images/958432197987401728/QLeEVLC__400x400.jpg"
+})
+
+az.style_image('logo', 1, {
+   "align" : "center",
+   "width" : "100px"
+})
+
+az.add_text('hold_elements_cells', 2, {
+    "this_class" : "choose_title",
+    "text" : "CHOOSE CORE DOMAIN"
+})
+
+az.add_text('hold_elements_cells', 3, {
+    "this_class" : "choose_title",
+    "text" : "CHOOSE COMPARISON DOMAIN"
+})
+
+az.all_style_text('choose_title', {
+    "color" : "white",
+    "font-size" : "26px"
+})
+
+json_files = ['physics.json','mathematics.json','computer_science.json','quantitative_biology.json','quantitative_finance.json','statistics.json']
+az.call_multiple({
+	"iterations": json_files.length,
+	"function": function(elem, index) {
+		az.read_local_file({
+			"file_path": '../data/' + json_files[index],
+			"done": function(data) {
+				az.add_dropdown('hold_elements_cells', 2, {
+					"this_class": "domain_dropdown",
+					"title": json_files[index].replace('json', '..').replace('_', ' '),
+					"options": az.get_unique_keys_from_object(data, 'title'),
+					"values" : az.get_unique_keys_from_object(data, 'url')
+				})
+				az.add_dropdown('hold_elements_cells', 3, {
+					"this_class": "domain_dropdown",
+					"title": json_files[index].replace('json', '..').replace('_', ' '),
+					"options": az.get_unique_keys_from_object(data, 'title'),
+					"values" : az.get_unique_keys_from_object(data, 'url')
+				})
+				az.all_style_dropdown('domain_dropdown', {
+				    "display" : "block",
+				    "margin-top" : "5px",
+				    "width" : "95%"
+				})
+			}
+		})
+	}
+})
+
+az.add_input('hold_elements_cells',4, {
+    "this_class" : "search_term",
+    "placeholder" : "search term..."
+})
+
+az.style_input('search_term', 1, {
+    "margin-top" : "20px",
+    "margin-bottom" : "10px",
+    "width" : "300px"
+})
+
+az.add_button('hold_elements_cells', 4, {
+    "this_class" : "run_scrape_and_model",
+    "text" : "FIND ANALOGIES"
+})
+
+az.style_button('run_scrape_and_model', 1, {
+    "background" : "white",
+    "border" : "1px solid black",
+    "display" : "block",
+    "color" : "black",
+    "margin-top" : "10px",
     "width" : "auto"
 })
+
+az.add_event('run_scrape_and_model', 1, {
+    "type" : "click",
+    "function" : function() {
+        parse_arxiv_pdf({
+            "arxiv_url" : az.grab_value('domain_dropdown', 1),
+            "filename" : "data/core_domain_text.txt"
+        })
+        /*
+        parse_arxiv_pdf({
+            "arxiv_url" : az.grab_value('domain_dropdown', 2),
+            "filename" : "data/comparison_domain_text.txt"
+        })
+        */
+        //run_word2vec()
+    }
+})
+
+
+
 
 })
 

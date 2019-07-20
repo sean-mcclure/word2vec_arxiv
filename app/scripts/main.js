@@ -1,6 +1,8 @@
-function parse_arxiv_pdf() {
+function parse_arxiv_pdf(options) {
 	params = {
-		"choice": "scrape_arxiv"
+		"choice": "scrape_arxiv",
+		"arxiv_url" : options.arxiv_url,
+		"filename" : options.filename
 	}
 	az.call_api({
 		"url": "http://localhost:7777/api/",

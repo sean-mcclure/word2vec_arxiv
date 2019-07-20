@@ -8,6 +8,7 @@ var spawn = require("child_process").spawn;
 var router = express.Router();
 var port = process.env.PORT || 7777;
 all_text = []
+check_state_done=false
 router.get('/', function(req, res) {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -31,7 +32,7 @@ router.get('/', function(req, res) {
 	}
 	if (req.query.choice == 'scrape_arxiv') {
 		var options = {
-			uri: 'https://arxiv.org/list/stat.ML/recent',
+			uri: req.query.arxiv_url,
 			headers: {
 				'User-Agent': 'Request-Promise'
 			}
@@ -50,21 +51,32 @@ router.get('/', function(req, res) {
 		}).then(function(outer_cleaned) {
 			outer_cleaned.forEach(function(url_obj, index) {
 				crawler(url_obj.url).then(function(response) {
-					all_text.push(response.text) //replace(/[^a-zA-Z ]/g, " ")
+					all_text.push(response.text)
 				}).catch(function(err) {
 					console.log('err1 ' + err)
 				})
+				if(index == outer_cleaned.length - 1) {
+				    check_state_done=true
+				    setTimeout(function() {
+				    check_state_done=false
+				    all_text = []
+				    }, 1000)
+				}
 			})
+
 		}).catch(function() {})
 		call_once_satisfied({
-			"condition": "all_text.length == 25",
+			"condition": "check_state_done == true",
 			"function": function() {
-				fs.writeFile("data/all_text.txt", all_text.join(' '), function(err) {
+				fs.writeFile(req.query.filename, all_text.join(' '), function(err) {
 					if (err) {
 						return console.log(err);
 					}
-					console.log("The file was saved!");
+					console.log("arxiv scrape saved!");
 				});
+				res.json({
+				"response": "finished scraping"
+			})
 			}
 		})
 	}
