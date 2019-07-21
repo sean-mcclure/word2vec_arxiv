@@ -138,16 +138,7 @@ az.style_button('run_scrape_and_model', 1, {
 az.add_event('run_scrape_and_model', 1, {
     "type" : "click",
     "function" : function() {
-        parse_arxiv_pdf({
-            "arxiv_url" : az.grab_value('domain_dropdown', 1),
-            "filename" : "data/core_domain_text.txt"
-        })
-        /*
-        parse_arxiv_pdf({
-            "arxiv_url" : az.grab_value('domain_dropdown', 2),
-            "filename" : "data/comparison_domain_text.txt"
-        })
-        */
+        parse_arxiv_pdf()
         //run_word2vec()
     }
 })

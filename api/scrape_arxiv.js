@@ -7,8 +7,8 @@ var fs = require('fs');
 var spawn = require("child_process").spawn;
 var router = express.Router();
 var port = process.env.PORT || 7777;
-all_text = []
-check_state_done=false
+outer_cleaned = new Array(50)
+all_text = new Array(0)
 router.get('/', function(req, res) {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -55,24 +55,18 @@ router.get('/', function(req, res) {
 				}).catch(function(err) {
 					console.log('err1 ' + err)
 				})
-				if(index == outer_cleaned.length - 1) {
-				    check_state_done=true
-				    setTimeout(function() {
-				    check_state_done=false
-				    all_text = []
-				    }, 1000)
-				}
 			})
-
 		}).catch(function() {})
 		call_once_satisfied({
-			"condition": "check_state_done == true",
+			"condition": "all_text.length == outer_cleaned.length",
 			"function": function() {
 				fs.writeFile(req.query.filename, all_text.join(' '), function(err) {
 					if (err) {
 						return console.log(err);
 					}
 					console.log("arxiv scrape saved!");
+					outer_cleaned = new Array(50)
+                    all_text = new Array(0)
 				});
 				res.json({
 				"response": "finished scraping"
