@@ -31,6 +31,7 @@ router.get('/', function(req, res) {
 		})
 	}
 	if (req.query.choice == 'scrape_arxiv') {
+		console.log('scraping arXiv at: ' + req.query.arxiv_url)
 		var options = {
 			uri: req.query.arxiv_url,
 			headers: {

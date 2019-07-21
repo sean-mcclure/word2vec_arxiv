@@ -11,25 +11,15 @@ import lxml.etree
 from gensim.models import Word2Vec
 
 def word2vec():
-    #download the data
-    '''
-    urllib.request.urlretrieve("https://wit3.fbk.eu/get.php?path=XML_releases/xml/ted_en-20160408.zip&filename=ted_en-20160408.zip", filename = "ted_en-20160408.zip")
-    # extract subtitle
-    with zipfile.ZipFile('ted_en-20160408.zip', 'r') as z:
-        doc = lxml.etree.parse(z.open('ted_en-20160408.xml', 'r'))
-    input_text = '\n'.join(doc.xpath('//content/text()'))
+    filenames = ['data/domain_1.txt', 'data/domain_2.txt']
+    with open('data/combined_domains.txt', 'w') as outfile:
+        for fname in filenames:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
 
-
-    # remove parenthesis
-    input_text_noparens = re.sub(r'\([^)]*\)', '', input_text)
-     '''
-
-
-    # store as list of sentences
-
-    with open('data/all_text.txt', 'r') as content_file:
+    with open('data/combined_domains.txt', 'r') as content_file:
         content = content_file.read()
-
 
     sentences_strings_ted = []
     for line in content.split('\n'):

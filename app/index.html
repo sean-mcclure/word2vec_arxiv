@@ -13,7 +13,16 @@
 
 create_azle(function() {
 
-az.load_script('scripts/main.js')
+az.load_scripts([
+    'scripts/main.js',
+    'scripts/dropdowns.js',
+    'scripts/events.js'
+    ])
+
+    az.call_once_satisfied({
+
+        "condition" : "typeof(add_dropdowns) == 'function'",
+        "function" : function() {
 
 az.load_font('Asap')
 
@@ -68,12 +77,12 @@ az.style_image('logo', 1, {
 
 az.add_text('hold_elements_cells', 2, {
     "this_class" : "choose_title",
-    "text" : "CHOOSE CORE DOMAIN"
+    "text" : "DOMAIN 1"
 })
 
 az.add_text('hold_elements_cells', 3, {
     "this_class" : "choose_title",
-    "text" : "CHOOSE COMPARISON DOMAIN"
+    "text" : "DOMAIN 2"
 })
 
 az.all_style_text('choose_title', {
@@ -88,26 +97,27 @@ az.call_multiple({
 		az.read_local_file({
 			"file_path": '../data/' + json_files[index],
 			"done": function(data) {
-				az.add_dropdown('hold_elements_cells', 2, {
-					"this_class": "domain_dropdown",
-					"title": json_files[index].replace('json', '..').replace('_', ' '),
-					"options": az.get_unique_keys_from_object(data, 'title'),
-					"values" : az.get_unique_keys_from_object(data, 'url')
-				})
-				az.add_dropdown('hold_elements_cells', 3, {
-					"this_class": "domain_dropdown",
-					"title": json_files[index].replace('json', '..').replace('_', ' '),
-					"options": az.get_unique_keys_from_object(data, 'title'),
-					"values" : az.get_unique_keys_from_object(data, 'url')
-				})
-				az.all_style_dropdown('domain_dropdown', {
-				    "display" : "block",
-				    "margin-top" : "5px",
-				    "width" : "95%"
-				})
+                add_dropdowns('hold_elements_cells', 2, {
+                    "classname" : "domain1_dropdown",
+                    "data" : data,
+                    "index" : index
+                })
+                add_dropdowns('hold_elements_cells', 3, {
+                    "classname" : "domain2_dropdown",
+                    "data" : data,
+                    "index" : index
+                })
+                if(index == 5) {
+                    add_drop_events('domain1_dropdown')
+                    add_drop_events('domain2_dropdown')
+                }
 			}
 		})
 	}
+})
+
+az.add_html('hold_elements_cells', 4, {
+   "html" : "<div class='hold_searching_text'></div>"
 })
 
 az.add_input('hold_elements_cells',4, {
@@ -132,6 +142,7 @@ az.style_button('run_scrape_and_model', 1, {
     "display" : "block",
     "color" : "black",
     "margin-top" : "10px",
+    "margin-bottom" : "10px",
     "width" : "auto"
 })
 
@@ -139,10 +150,11 @@ az.add_event('run_scrape_and_model', 1, {
     "type" : "click",
     "function" : function() {
         parse_arxiv_pdf()
-        //run_word2vec()
     }
 })
 
+}
+})
 
 
 
