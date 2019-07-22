@@ -10,6 +10,6 @@ function add_dropdowns(target_class, target_instance, options) {
 	az.all_style_dropdown(options.classname, {
 		"display": "block",
 		"margin-top": "5px",
-		"width": "95%"
+		"width": "400px"
 	})
 }

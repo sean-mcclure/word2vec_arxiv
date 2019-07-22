@@ -1,24 +1,22 @@
 # *************** PYTHON FUNCTIONS *******************
 
 # import libraries
-import numpy as np
-import os
-from random import shuffle
 import re
-import urllib.request
-import zipfile
-import lxml.etree
 from gensim.models import Word2Vec
+from gensim.models import FastText
 
-def word2vec():
-    filenames = ['data/domain_1.txt', 'data/domain_2.txt']
+def word2vec(search_term):
+
+    '''
+   filenames = ['data/domain_1.txt', 'data/domain_2.txt']
     with open('data/combined_domains.txt', 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
                 for line in infile:
                     outfile.write(line)
 
-    with open('data/combined_domains.txt', 'r') as content_file:
+    '''
+    with open('data/domain_1.txt', 'r') as content_file:
         content = content_file.read()
 
     sentences_strings_ted = []
@@ -31,9 +29,11 @@ def word2vec():
         tokens = re.sub(r"[^a-z0-9]+", " ", sent_str.lower()).split()
         sentences_ted.append(tokens)
 
-    model_ted = Word2Vec(sentences = sentences_ted, size = 100, window = 5, min_count = 5, workers = 4, sg = 0)
+    model_ted = FastText(sentences_ted, size=100, window=5, min_count=5, workers=4, sg=1)
 
-    output = model_ted.wv.most_similar('learning')
+    #model_ted = Word2Vec(sentences = sentences_ted, size = 100, window = 5, min_count = 5, workers = 4, sg = 0)
+
+    output = model_ted.wv.most_similar(search_term)
 
     res = " ".join(str(x) for x in output)
 
