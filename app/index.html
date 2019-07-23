@@ -46,7 +46,7 @@ az.add_layout('main_section', 1, {
     "this_class" : "hold_elements",
     "row_class" : "hold_elements_rows",
     "cell_class" : "hold_elements_cells",
-    "number_of_rows" : 5,
+    "number_of_rows" : 10,
     "number_of_columns" : 1
 })
 
@@ -169,7 +169,27 @@ az.add_html('hold_elements_cells', 5, {
    "html" : "<div class='hold_searching_text'></div>"
 })
 
+az.add_iframe('hold_elements_cells', 5, {
+    "this_class" : "top_article_frame",
+    "source" : "https://blank.org/"
+})
+
+az.style_iframe('top_article_frame', 1, {
+    "width" : "100%"
+})
+
+az.add_iframe('hold_elements_cells', 6, {
+    "this_class" : "top_article_force_diagram",
+    "source" : "visuals/force_visual/"
+})
+
+az.style_iframe('top_article_force_diagram', 1, {
+    "width" : "100%",
+    "height" : "700px"
+})
+
 }
+
 })
 
 

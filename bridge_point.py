@@ -1,6 +1,7 @@
 import sys
 
 from word2vec import *
+from doc2vec import *
 
 function_choice = sys.argv[1]
 

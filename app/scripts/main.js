@@ -2,12 +2,12 @@ function parse_arxiv_pdf() {
 	params = {
 		"choice": "scrape_arxiv",
 		"arxiv_url": az.hold_value.chosen1_value,
-		"filename": "data/domain_1.txt"
+		"filename": "data/domain_1.json"
 	}
 	az.call_api({
 		"url": "http://localhost:7777/api/",
 		"parameters": params,
-		"done": "az.hold_value.pdf_parser_results = data['response']",
+		"done": "az.hold_value.pdf_parser_results = data['response']; az.hold_value.scraped_urls = data['scraped_urls']",
 		"fail": "alert('Could not connect to the server.')"
 	})
 	az.add_spinner({
@@ -22,7 +22,8 @@ function parse_arxiv_pdf() {
 		"condition": "az.hold_value.pdf_parser_results == 'finished scraping'",
 		"function": function() {
 			az.hold_value.pdf_parser_results = ''
-			run_word2vec(az.grab_value('search_term', 1))
+			//run_word2vec(az.grab_value('search_term', 1))
+			run_doc2vec(az.grab_value('search_term', 1))
 			az.all_style_dropdown('domain1_dropdown', {
 				"pointer-events": "auto",
 				"opacity": 1
@@ -45,6 +46,13 @@ function parse_arxiv_pdf() {
 						"this_class": "show_wordvec_results",
 						"text": az.hold_value.word2vec_results
 					})
+
+                    doc2vec_results_obj = JSON.parse(az.hold_value.word2vec_results.replace(/['"]+/g, '"'))
+
+					closet_obj = doc2vec_results_obj.filter(function(value, index) {
+                        return value.distance ===  Math.max.apply(null, az.get_unique_keys_from_object(doc2vec_results_obj, 'distance'))
+                    })
+
 					az.style_text('show_wordvec_results', 1, {
 						"width": "300px",
 						"background": "#b31b1a",
@@ -52,6 +60,11 @@ function parse_arxiv_pdf() {
 						"padding": "5px",
 						"color": "white"
 					})
+
+					$('.top_article_frame').attr('src', az.hold_value.scraped_urls[closet_obj[0].index].url)
+
+
+
 				}
 			})
 		}
@@ -60,8 +73,26 @@ function parse_arxiv_pdf() {
 
 function run_word2vec(search_term) {
 	params = {
-		"choice": "run_word2vec",
+		"choice": "run_doc_or_word2vec",
 		"function_choice": "word2vec('" + search_term + "')"
+	}
+	az.call_api({
+		"url": "http://localhost:7777/api/",
+		"parameters": params,
+		"done": function(data) {
+			az.hold_value.word2vec_results = data['response']
+			setTimeout(function() {
+				az.hold_value.word2vec_results = undefined
+			}, 2000)
+		},
+		"fail": "alert('Could not connect to the server.')"
+	})
+}
+
+function run_doc2vec(search_term) {
+	params = {
+		"choice": "run_doc_or_word2vec",
+		"function_choice": "doc2vec('" + search_term + "')"
 	}
 	az.call_api({
 		"url": "http://localhost:7777/api/",
