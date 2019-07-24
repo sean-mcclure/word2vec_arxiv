@@ -4,15 +4,15 @@ export default function define(runtime, observer) {
   main.variable(observer()).define(["md"], function(md){return(
 md
 )});
-  main.variable(observer("chart")).define("chart", ["data","d3","width","height","color","drag","invalidation"], function(data,d3,width,height,color,drag,invalidation)
-{
+  main.variable(observer("chart")).define("chart", ["data","d3","width","height","color","drag","invalidation"], function(data,d3,width,height,color,drag,invalidation) {
   const links = data.links.map(d => Object.create(d));
   const nodes = data.nodes.map(d => Object.create(d));
 
   const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id))
       .force("charge", d3.forceManyBody())
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("link", d3.forceLink().distance(function(d) {return d.value;}).strength(0.1))
 
   const svg = d3.create("svg")
       .attr("viewBox", [0, 0, width, height]);
@@ -23,20 +23,28 @@ md
     .selectAll("line")
     .data(links)
     .join("line")
-      .attr("stroke-width", d => Math.sqrt(d.value));
+      .attr("stroke-width", d => Math.sqrt(d.id));
 
   const node = svg.append("g")
       .attr("stroke", "#fff")
       .attr("stroke-width", 1.5)
-    .selectAll("circle")
+    .selectAll(".node")
     .data(nodes)
-    .join("circle")
-      .attr("r", 5)
-      .attr("fill", color)
+    .join("g")
       .call(drag(simulation));
 
-  node.append("title")
-      .text(d => d.id);
+   node.append('circle')
+      .attr("r", 10)
+      .attr("fill", color);
+
+  node.append("text")
+      .text(function(d) {
+        return d.id;
+      })
+      .style('fill', 'white')
+      .style('font-weight', '26px')
+      .attr('x', 6)
+      .attr('y', 3);
 
   simulation.on("tick", () => {
     link
@@ -45,9 +53,9 @@ md
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
 
+
     node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
+        .attr("transform", d => `translate(${d.x}, ${d.y})`);
   });
 
   invalidation.then(() => simulation.stop());

@@ -46,13 +46,10 @@ function parse_arxiv_pdf() {
 						"this_class": "show_wordvec_results",
 						"text": az.hold_value.word2vec_results
 					})
-
-                    doc2vec_results_obj = JSON.parse(az.hold_value.word2vec_results.replace(/['"]+/g, '"'))
-
-					closet_obj = doc2vec_results_obj.filter(function(value, index) {
-                        return value.distance ===  Math.max.apply(null, az.get_unique_keys_from_object(doc2vec_results_obj, 'distance'))
-                    })
-
+					az.hold_value.doc2vec_results_obj = JSON.parse(az.hold_value.word2vec_results.split("'").join('"'))
+					closet_obj = az.hold_value.doc2vec_results_obj.filter(function(value, index) {
+						return value.distance === Math.max.apply(null, az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance'))
+					})
 					az.style_text('show_wordvec_results', 1, {
 						"width": "300px",
 						"background": "#b31b1a",
@@ -60,11 +57,12 @@ function parse_arxiv_pdf() {
 						"padding": "5px",
 						"color": "white"
 					})
-
 					$('.top_article_frame').attr('src', az.hold_value.scraped_urls[closet_obj[0].index].url)
-
-
-
+					az.post_message_to_frame('top_article_force_diagram', 1, {
+						"function": function() {
+							main.redefine('data', parent.send_data())
+						}
+					})
 				}
 			})
 		}

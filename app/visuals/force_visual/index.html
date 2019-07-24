@@ -11,4 +11,8 @@ import define from "./@d3/force-directed-graph.js";
 const runtime = new Runtime();
 const main = runtime.module(define, Inspector.into(document.body));
 
+window.addEventListener('message', function(e) {
+    eval('(' + decodeURI(e.data) + ')();')
+}, false)
+
 </script>
