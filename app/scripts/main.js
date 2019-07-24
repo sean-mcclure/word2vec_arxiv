@@ -60,7 +60,7 @@ function parse_arxiv_pdf() {
 					$('.top_article_frame').attr('src', az.hold_value.scraped_urls[closet_obj[0].index].url)
 					az.post_message_to_frame('top_article_force_diagram', 1, {
 						"function": function() {
-							main.redefine('data', parent.send_data())
+							main.redefine('data', parent.create_d3_data_b())
 						}
 					})
 				}

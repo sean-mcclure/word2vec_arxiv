@@ -3,8 +3,12 @@ az.read_local_file({
     "done" : "az.hold_value.data = data"
 })
 
-document_titles = ['doc1', 'doc2', 'doc3', 'doc4', 'doc5', 'doc6', 'doc7']
-distances = [50, 100, 50, 150, 200, 100, 300]
+function normalize(min, max) {
+    var delta = max - min;
+    return function (val) {
+        return (val - min) / delta;
+    };
+}
 
 draw_data = {}
 draw_data.nodes = []
@@ -12,10 +16,24 @@ draw_data.links=[]
 
 function create_d3_data() {
 
-    document_titles = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index')
-    distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+    //document_titles = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index')
 
-    src = 15
+    distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance').map(function(val) { // take the inverse since plotting distances
+        res = 100/val
+        return(res)
+        })
+
+
+
+        distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+
+        distances_norm = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance').map(normalize(Math.min.apply(null, distances), Math.max.apply(null, distances))).map(function(each_element){
+            return Number(each_element.toFixed(2));
+        });
+
+        document_titles = distances_norm
+
+    src = 'root'
 
     document_titles.forEach(function(value, i) {
 
@@ -29,7 +47,7 @@ function create_d3_data() {
     links_obj.source = document_titles[i]
 
     links_obj.target = src
-    links_obj.value = distances[i]
+    links_obj.value = distances_norm[i]
     }
 
     draw_data.links.push(links_obj)
@@ -39,5 +57,27 @@ function create_d3_data() {
     draw_data.nodes = draw_data.nodes.filter(value => Object.keys(value).length !== 0)
     draw_data.links = draw_data.links.filter(value => Object.keys(value).length !== 0)
 
+    draw_data.nodes.push({
+		"id": "root",
+		"group": 1
+	})
+
     return(draw_data)
+}
+
+
+
+
+function create_d3_data_b() {
+    document_titles = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index')
+    distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+    outer = []
+    document_titles.forEach(function(value, i) {
+        inner={}
+        inner.name = document_titles[i]
+        inner.percent = distances[i]
+        inner.value = distances[i]
+        outer.push(inner)
+    })
+    return(outer)
 }

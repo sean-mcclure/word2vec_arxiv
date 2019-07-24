@@ -8,11 +8,24 @@ md
   const links = data.links.map(d => Object.create(d));
   const nodes = data.nodes.map(d => Object.create(d));
 
+
   const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id))
+      .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(function(d) {return d.value;}))
       .force("charge", d3.forceManyBody())
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("link", d3.forceLink().distance(function(d) {return d.value;}).strength(0.1))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+
+/*
+     const simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(100).strength(1))
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+*/
+
+
+
 
   const svg = d3.create("svg")
       .attr("viewBox", [0, 0, width, height]);
@@ -47,11 +60,14 @@ md
       .attr('y', 3);
 
   simulation.on("tick", () => {
+
     link
         .attr("x1", d => d.source.x)
         .attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
+
+
 
 
     node
