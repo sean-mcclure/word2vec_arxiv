@@ -2,9 +2,7 @@
 export default function define(runtime, observer) {
   const main = runtime.module();
   main.variable(observer()).define(["md"], function(md){return(
-md`# Horizontal Bar Chart
-
-This chart shows the relative frequency of letters in the English language.`
+md
 )});
   main.variable(observer("chart")).define("chart", ["d3","DOM","width","height","data","x","y"], function(d3,DOM,width,height,data,x,y)
 {
@@ -80,6 +78,8 @@ d3.scaleBand()
     .range([margin.top, height - margin.bottom])
     .padding(0.1)
 )});
+
+
   main.variable(observer("xAxis")).define("xAxis", ["margin","d3","x","width"], function(margin,d3,x,width){return(
 g => g
     .attr("transform", `translate(0,${margin.top})`)
@@ -91,14 +91,18 @@ g => g
     .attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).tickSizeOuter(0))
 )});
+
   main.variable(observer("height")).define("height", ["data","margin"], function(data,margin){return(
 data.length * 25 + margin.top + margin.bottom
 )});
+
   main.variable(observer("margin")).define("margin", function(){return(
 {top: 30, right: 0, bottom: 10, left: 30}
 )});
+
   main.variable(observer("d3")).define("d3", ["require"], function(require){return(
 require("d3@5")
 )});
+
   return main;
 }

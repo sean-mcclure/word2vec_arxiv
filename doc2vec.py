@@ -14,11 +14,7 @@ def doc2vec(search_term):
 
     model = Doc2Vec(documents, vector_size=5, window=2, min_count=1, workers=4)
 
-    search_list=[]
-
-    search_list.append(search_term)
-
-    inferred_vector = model.infer_vector(search_list)
+    inferred_vector = model.infer_vector(search_term.split(' '))
 
     sims = model.docvecs.most_similar([inferred_vector], topn=len(model.docvecs))
 

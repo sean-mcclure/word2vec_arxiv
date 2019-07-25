@@ -61,6 +61,10 @@ function parse_arxiv_pdf() {
 					az.post_message_to_frame('top_article_force_diagram', 1, {
 						"function": function() {
 							main.redefine('data', parent.create_d3_data_b())
+							az.call_every({
+							    "every" : 500,
+							    "function" : "$('span').remove()"
+							})
 						}
 					})
 				}

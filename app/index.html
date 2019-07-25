@@ -131,13 +131,21 @@ az.call_multiple({
 
 az.add_input('hold_elements_cells',3, {
     "this_class" : "search_term",
-    "placeholder" : "search term..."
+    "placeholder" : "search terms..."
 })
 
 az.style_input('search_term', 1, {
     "margin-top" : "20px",
     "margin-bottom" : "10px",
     "width" : "300px"
+})
+az.add_text('hold_elements_cells', 3, {
+    "this_class" : "explain_input",
+    "text" : "<br>terms separated by space"
+})
+az.style_text('explain_input', 1, {
+    "color" : "lightgrey",
+    "margin-top" : "-24px"
 })
 
 az.add_button('hold_elements_cells', 4, {
