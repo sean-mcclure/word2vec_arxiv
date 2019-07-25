@@ -41,7 +41,7 @@ az.add_sections({
 az.style_sections('main_section', 1, {
     "background" : "darkslategrey",
     "height" : "auto",
-    "width" : "500px"
+    "width" : "90%"
 })
 
 az.add_layout('main_section', 1, {
@@ -49,22 +49,22 @@ az.add_layout('main_section', 1, {
     "row_class" : "hold_elements_rows",
     "cell_class" : "hold_elements_cells",
     "number_of_rows" : 10,
-    "number_of_columns" : 1
+    "number_of_columns" : 2
 })
 
 az.style_layout('hold_elements', 1, {
-    "border" : 0
+    "border" : 1
 })
 
-/*
+
 az.style_layout('hold_elements_cells', 1, {
     "colspan" : 2
 })
 
-az.style_layout('hold_elements_cells', 4, {
-    "colspan" : 2
+az.style_layout('hold_elements_cells', 3, {
+    "rowspan" : 2
 })
-*/
+
 
 az.all_style_layout('hold_elements_cells', {
     "halign" : "center"
@@ -82,15 +82,18 @@ az.style_image('logo', 1, {
 
 az.add_text('hold_elements_cells', 2, {
     "this_class" : "choose_title",
-    "text" : "CHOOSE DOMAIN"
+    "text" : "1&nbsp;CHOOSE DOMAIN"
 })
 
-/*
-az.add_text('hold_elements_cells', 3, {
+az.add_text('hold_elements_cells', 4, {
     "this_class" : "choose_title",
-    "text" : "DOMAIN 2"
+    "text" : "2&nbsp;SEARCH TERMS"
 })
-*/
+
+az.add_text('hold_elements_cells', 6, {
+    "this_class" : "choose_title",
+    "text" : "3&nbsp;VIEW DOCUMENTS"
+})
 
 az.all_style_text('choose_title', {
     "color" : "white",
@@ -111,16 +114,8 @@ az.call_multiple({
                     "data" : data,
                     "index" : index
                 })
-                /*
-                add_dropdowns('hold_elements_cells', 3, {
-                    "classname" : "domain2_dropdown",
-                    "data" : data,
-                    "index" : index
-                })
-                */
                 if(index == 5) {
                     add_drop_events('domain1_dropdown')
-                    //add_drop_events('domain2_dropdown')
                 }
 			}
 		})
@@ -129,7 +124,7 @@ az.call_multiple({
 
 
 
-az.add_input('hold_elements_cells',3, {
+az.add_input('hold_elements_cells',4, {
     "this_class" : "search_term",
     "placeholder" : "search terms..."
 })
@@ -139,7 +134,7 @@ az.style_input('search_term', 1, {
     "margin-bottom" : "10px",
     "width" : "300px"
 })
-az.add_text('hold_elements_cells', 3, {
+az.add_text('hold_elements_cells', 4, {
     "this_class" : "explain_input",
     "text" : "<br>terms separated by space"
 })
@@ -150,7 +145,7 @@ az.style_text('explain_input', 1, {
 
 az.add_button('hold_elements_cells', 4, {
     "this_class" : "run_scrape_and_model",
-    "text" : "FIND ANALOGIES"
+    "text" : "FIND DOCUMENT"
 })
 
 az.style_button('run_scrape_and_model', 1, {
@@ -175,27 +170,24 @@ az.add_event('run_scrape_and_model', 1, {
         }
 })
 
-az.add_html('hold_elements_cells', 5, {
-   "html" : "<div class='hold_searching_text'></div>"
-})
-
-az.add_iframe('hold_elements_cells', 5, {
+az.add_iframe('hold_elements_cells', 3, {
     "this_class" : "top_article_frame",
     "source" : "https://blank.org/"
 })
 
 az.style_iframe('top_article_frame', 1, {
-    "width" : "100%"
+    "width" : "100%",
+    "height" : "100%"
 })
 
-az.add_iframe('hold_elements_cells', 6, {
-    "this_class" : "top_article_force_diagram",
+az.add_iframe('hold_elements_cells', 5, {
+    "this_class" : "top_article_barchart",
     "source" : "visuals/horizontal-bar-chart/"
 })
 
-az.style_iframe('top_article_force_diagram', 1, {
+az.style_iframe('top_article_barchart', 1, {
     "width" : "100%",
-    "height" : "700px"
+    "height" : "auto"
 })
 
 }

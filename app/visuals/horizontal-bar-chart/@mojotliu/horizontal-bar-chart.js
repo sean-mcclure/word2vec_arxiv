@@ -9,7 +9,7 @@ md
   const svg = d3.select(DOM.svg(width, height));
   
   svg.append("g")
-      .attr("fill", "steelblue")
+      .attr("fill", "rgb(179, 27, 26)")
     .selectAll("rect")
     .data(data)
     .join("rect")
@@ -21,7 +21,7 @@ md
   svg.append("g")
       .attr("fill", "white")
       .attr("text-anchor", "middle")
-      .style("font", "12px sans-serif")
+      .style("font", "18px arial")
     .selectAll("text")
     .data(data)
     .join("text")
@@ -31,9 +31,9 @@ md
       .text(d => d.name);
   
     svg.append("g")
-      .attr("fill", "black")
+      .attr("fill", "white")
       .attr("text-anchor", "after-edge")
-      .style("font", "12px sans-serif")
+      .style("font", "18px arial")
     .selectAll("text")
     .data(data)
     .join("text")
@@ -97,7 +97,7 @@ data.length * 25 + margin.top + margin.bottom
 )});
 
   main.variable(observer("margin")).define("margin", function(){return(
-{top: 30, right: 0, bottom: 10, left: 30}
+{top: 30, right: 30, bottom: 10, left: 30}
 )});
 
   main.variable(observer("d3")).define("d3", ["require"], function(require){return(

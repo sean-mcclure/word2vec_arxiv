@@ -53,6 +53,10 @@ az.style_text('searching_text_title', 1, {
 })
 					}
 					*/
+					az.animate_element('search_term', 1, {
+					    "type" : "rubberBand"
+					})
+					az.focus_element('search_term', 1)
 				}
 			})
 		}

@@ -70,13 +70,20 @@ function create_d3_data() {
 
 function create_d3_data_b() {
     document_titles = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index')
-    distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+    //distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+
+     distances = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance')
+     distances_norm = az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance').map(normalize(Math.min.apply(null, distances), Math.max.apply(null, distances))).map(function(each_element){
+            return Number(each_element.toFixed(2));
+        });
+
+
     outer = []
     document_titles.forEach(function(value, i) {
         inner={}
-        inner.name = document_titles[i]
-        inner.percent = distances[i]
-        inner.value = distances[i]
+        inner.name = 'DOCUMENT ' + document_titles[i]
+        inner.percent = distances_norm[i]
+        inner.value = distances_norm[i]
         outer.push(inner)
     })
     return(outer)

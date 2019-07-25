@@ -12,7 +12,7 @@ function parse_arxiv_pdf() {
 	})
 	az.add_spinner({
 		"this_class": "scraping_spinner",
-		"condition": "typeof(az.hold_value.word2vec_results) !== 'undefined'"
+		"condition": "typeof(az.hold_value.doc2vec_results) !== 'undefined'"
 	})
 	az.style_spinner('scraping_spinner', 1, {
 		"section_color": "#b31b1a",
@@ -32,7 +32,6 @@ function parse_arxiv_pdf() {
 			az.add_value('search_term', 1, {
 				"value": ""
 			})
-			az.empty_contents('hold_searching_text', 1)
 			setTimeout(function() {
 				$("select").each(function() {
 					this.selectedIndex = 0
@@ -40,13 +39,10 @@ function parse_arxiv_pdf() {
 			}, 300)
 			az.hold_value.chosen1_text = undefined
 			az.call_once_satisfied({
-				"condition": "typeof(az.hold_value.word2vec_results)  !== 'undefined'",
+				"condition": "typeof(az.hold_value.doc2vec_results)  !== 'undefined'",
 				"function": function() {
-					az.add_text('hold_searching_text', 1, {
-						"this_class": "show_wordvec_results",
-						"text": az.hold_value.word2vec_results
-					})
-					az.hold_value.doc2vec_results_obj = JSON.parse(az.hold_value.word2vec_results.split("'").join('"'))
+					console.log('doc2vec_results: ' + az.hold_value.doc2vec_results)
+					az.hold_value.doc2vec_results_obj = JSON.parse(az.hold_value.doc2vec_results.split("'").join('"'))
 					closet_obj = az.hold_value.doc2vec_results_obj.filter(function(value, index) {
 						return value.distance === Math.max.apply(null, az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'distance'))
 					})
@@ -58,12 +54,48 @@ function parse_arxiv_pdf() {
 						"color": "white"
 					})
 					$('.top_article_frame').attr('src', az.hold_value.scraped_urls[closet_obj[0].index].url)
-					az.post_message_to_frame('top_article_force_diagram', 1, {
+					az.post_message_to_frame('top_article_barchart', 1, {
 						"function": function() {
 							main.redefine('data', parent.create_d3_data_b())
 							az.call_every({
-							    "every" : 500,
-							    "function" : "$('span').remove()"
+								"every": 500,
+								"function": "$('span').remove()"
+							})
+						}
+					})
+					// add view documents buttons
+					az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index').forEach(function(value, index) {
+						az.add_button('hold_elements_cells', 6, {
+							"this_class": "view_doc_buttons",
+							"text": "DOC " + value
+						})
+						az.all_style_button('view_doc_buttons', {
+							"background": "whitesmoke",
+							"border": "1px solid black",
+							"color": "black",
+							"margin": "4px",
+							"outline": 0
+						})
+					})
+					az.all_add_event('view_doc_buttons', {
+						"type": "click",
+						"function": function(this_id) {
+							az.all_style_button('view_doc_buttons', {
+								"background": "whitesmoke",
+								"color": "black"
+							})
+							az.style_button('view_doc_buttons', az.get_target_instance(this_id), {
+								"background": "#b31b1a",
+								"color": "white"
+							})
+							$('.top_article_frame').prop('src', az.hold_value.scraped_urls[az.hold_value.doc2vec_results_obj[az.get_target_instance(this_id) - 1].index].url)
+							az.add_spinner({
+								"this_class": "view_doc_spinner",
+								"duration": 2000
+							})
+							az.style_spinner('view_doc_spinner', 1, {
+								"section_color": "#b31b1a",
+								"background": "rgba(47, 179, 79, 0.7)"
 							})
 						}
 					})
@@ -82,9 +114,9 @@ function run_word2vec(search_term) {
 		"url": "http://localhost:7777/api/",
 		"parameters": params,
 		"done": function(data) {
-			az.hold_value.word2vec_results = data['response']
+			az.hold_value.doc2vec_results = data['response']
 			setTimeout(function() {
-				az.hold_value.word2vec_results = undefined
+				az.hold_value.doc2vec_results = undefined
 			}, 2000)
 		},
 		"fail": "alert('Could not connect to the server.')"
@@ -100,9 +132,9 @@ function run_doc2vec(search_term) {
 		"url": "http://localhost:7777/api/",
 		"parameters": params,
 		"done": function(data) {
-			az.hold_value.word2vec_results = data['response']
+			az.hold_value.doc2vec_results = data['response']
 			setTimeout(function() {
-				az.hold_value.word2vec_results = undefined
+				az.hold_value.doc2vec_results = undefined
 			}, 2000)
 		},
 		"fail": "alert('Could not connect to the server.')"
