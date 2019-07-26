@@ -41,7 +41,8 @@ az.add_sections({
 az.style_sections('main_section', 1, {
     "background" : "#1ab2b3",
     "height" : "auto",
-    "width" : "90%"
+    "width" : "90%",
+    "padding-top" : "10px"
 })
 
 az.add_layout('main_section', 1, {
@@ -53,6 +54,7 @@ az.add_layout('main_section', 1, {
 })
 
 az.style_layout('hold_elements', 1, {
+    "margin-bottom" : "-10px",
     "border" : 0
 })
 
@@ -205,8 +207,8 @@ az.add_iframe('hold_elements_cells', 3, {
 })
 
 az.style_iframe('top_article_frame', 1, {
-    "width" : "100%",
-    "height" : "100%"
+    "width" : "95%",
+    "height" : "96%"
 })
 
 az.add_text('hold_elements_cells', 8, {
@@ -225,9 +227,10 @@ az.add_iframe('hold_elements_cells', 8, {
 })
 
 az.all_style_iframe('top_article_barchart', {
-    "width" : "100%",
-    "height" : "auto",
+    "width" : "90%",
+    "height" : "170px",
     "border" : "none",
+    "pointer-events" : "none",
     "outline" : 0
 })
 
@@ -259,6 +262,10 @@ az.style_layout('hold_elements_cells', 8, {
     "background" : "#b31b1a"
 })
 
+az.style_layout('hold_elements_cells', 3, {
+    "valign" : "bottom"
+})
+
 az.style_layout('hold_elements_cells', 6, {
     "valign" : "top"
 })
@@ -268,6 +275,30 @@ az.all_style_text('choose_title', {
     "font-size" : "22px",
     "margin-top" : "10px",
     "margin-bottom" : "10px"
+})
+
+az.style_word('choose_title', 2, {
+    "this_class" : "yellow_word",
+    "word" : "1",
+    "color" : "yellow"
+})
+
+az.style_word('choose_title', 3, {
+    "this_class" : "yellow_word2",
+    "word" : "2",
+    "color" : "yellow"
+})
+
+az.style_word('choose_title', 5, {
+    "this_class" : "yellow_word3",
+    "word" : "3",
+    "color" : "yellow"
+})
+
+az.style_word('choose_title', 6, {
+    "this_class" : "yellow_word4",
+    "word" : "4",
+    "color" : "yellow"
 })
 
 

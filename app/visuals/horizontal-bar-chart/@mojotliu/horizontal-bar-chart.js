@@ -62,6 +62,11 @@ new Object([{
   "name": "DOC 4",
   "percent": 0,
   "value": 0,
+},
+{
+  "name": "DOC 5",
+  "percent": 0,
+  "value": 0,
 }])
 )});
   main.variable(observer("format")).define("format", ["x"], function(x){return(
@@ -78,7 +83,6 @@ d3.scaleBand()
     .range([margin.top, height - margin.bottom])
     .padding(0.1)
 )});
-
 
   main.variable(observer("xAxis")).define("xAxis", ["margin","d3","x","width"], function(margin,d3,x,width){return(
 g => g
@@ -97,7 +101,7 @@ data.length * 25 + margin.top + margin.bottom
 )});
 
   main.variable(observer("margin")).define("margin", function(){return(
-{top: 10, right: 30, bottom: 10, left: 30}
+{top: 10, right: 60, bottom: 10, left: 30}
 )});
 
   main.variable(observer("d3")).define("d3", ["require"], function(require){return(

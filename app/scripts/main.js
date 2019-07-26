@@ -57,14 +57,10 @@ function parse_arxiv_pdf() {
 					az.post_message_to_frame('top_article_barchart', 1, {
 						"function": function() {
 							main.redefine('data', parent.create_d3_data_b())
-							az.call_every({
-								"every": 500,
-								"function": "$('span').remove()"
-							})
 						}
 					})
 					// add view documents buttons
-					az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj, 'index').forEach(function(value, index) {
+					az.get_unique_keys_from_object(az.hold_value.doc2vec_results_obj.slice(0,5), 'index').forEach(function(value, index) {
 						az.add_button('hold_elements_cells', 6, {
 							"this_class": "view_doc_buttons",
 							"text": "DOC " + value
