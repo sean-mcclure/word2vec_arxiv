@@ -26,11 +26,11 @@ az.load_scripts([
         "condition" : "typeof(add_dropdowns) == 'function'",
         "function" : function() {
 
-az.load_font('Asap')
+az.load_font('Anton')
 
 az.style_body({
-    "background" : "#141414",
-    "font-family" : "Asap"
+    "background" : "#64E8E8",
+    "font-family" : "Anton"
 })
 
 az.add_sections({
@@ -39,7 +39,7 @@ az.add_sections({
 })
 
 az.style_sections('main_section', 1, {
-    "background" : "darkslategrey",
+    "background" : "#1ab2b3",
     "height" : "auto",
     "width" : "90%"
 })
@@ -53,7 +53,7 @@ az.add_layout('main_section', 1, {
 })
 
 az.style_layout('hold_elements', 1, {
-    "border" : 1
+    "border" : 0
 })
 
 
@@ -64,6 +64,8 @@ az.style_layout('hold_elements_cells', 1, {
 az.style_layout('hold_elements_cells', 3, {
     "rowspan" : 2
 })
+
+
 
 
 az.all_style_layout('hold_elements_cells', {
@@ -80,6 +82,21 @@ az.style_image('logo', 1, {
    "width" : "100px"
 })
 
+az.add_text('hold_elements_cells', 1, {
+    "this_class" : "choose_title",
+    "text" : "DISCOVERY TOOL"
+})
+
+az.style_text('choose_title', 1, {
+    "font-style" : "italic",
+    "font-size" : "140px"
+})
+
+az.style_text('choose_title', 1, {
+    "margin-top" : "-30px",
+    "margin-bottom" : "30px"
+})
+
 az.add_text('hold_elements_cells', 2, {
     "this_class" : "choose_title",
     "text" : "1&nbsp;CHOOSE DOMAIN"
@@ -87,7 +104,11 @@ az.add_text('hold_elements_cells', 2, {
 
 az.add_text('hold_elements_cells', 4, {
     "this_class" : "choose_title",
-    "text" : "2&nbsp;SEARCH TERMS"
+    "text" : "2&nbsp;SEARCH FOR DOCUMENTS"
+})
+
+az.style_text('choose_title', 3, {
+    "margin-top" : "30px"
 })
 
 az.add_text('hold_elements_cells', 6, {
@@ -95,11 +116,9 @@ az.add_text('hold_elements_cells', 6, {
     "text" : "3&nbsp;VIEW DOCUMENTS"
 })
 
-az.all_style_text('choose_title', {
-    "color" : "white",
-    "font-size" : "22px",
-    "margin-top" : "10px",
-    "margin-bottom" : "10px"
+az.add_text('hold_elements_cells', 7, {
+    "this_class" : "choose_title",
+    "text" : "4&nbsp;FIND CLOSEST WORDS TO SEARCH TERM"
 })
 
 json_files = ['physics.json','mathematics.json','computer_science.json','quantitative_biology.json','quantitative_finance.json','statistics.json']
@@ -130,7 +149,7 @@ az.add_input('hold_elements_cells',4, {
 })
 
 az.style_input('search_term', 1, {
-    "margin-top" : "20px",
+    "margin-top" : "0px",
     "margin-bottom" : "10px",
     "width" : "300px"
 })
@@ -145,15 +164,20 @@ az.style_text('explain_input', 1, {
 
 az.add_button('hold_elements_cells', 4, {
     "this_class" : "run_scrape_and_model",
-    "text" : "FIND DOCUMENT"
+    "text" : "RUN DOC2VEC"
 })
 
-az.style_button('run_scrape_and_model', 1, {
+az.add_button('hold_elements_cells', 7, {
+    "this_class" : "run_scrape_and_model",
+    "text" : "RUN WORD2VEC"
+})
+
+az.all_style_button('run_scrape_and_model', {
     "background" : "white",
     "border" : "1px solid black",
     "display" : "block",
     "color" : "black",
-    "margin-top" : "10px",
+    "margin-top" : "20px",
     "margin-bottom" : "10px",
     "width" : "auto",
     "outline" : 0
@@ -170,6 +194,11 @@ az.add_event('run_scrape_and_model', 1, {
         }
 })
 
+az.add_text('hold_elements_cells', 5, {
+    "this_class" : "choose_title",
+    "text" : "DOCUMENT SIMILARITY"
+})
+
 az.add_iframe('hold_elements_cells', 3, {
     "this_class" : "top_article_frame",
     "source" : "https://blank.org/"
@@ -180,17 +209,73 @@ az.style_iframe('top_article_frame', 1, {
     "height" : "100%"
 })
 
+az.add_text('hold_elements_cells', 8, {
+    "this_class" : "choose_title",
+    "text" : "WORD SIMILARITY"
+})
+
 az.add_iframe('hold_elements_cells', 5, {
     "this_class" : "top_article_barchart",
     "source" : "visuals/horizontal-bar-chart/"
 })
 
-az.style_iframe('top_article_barchart', 1, {
-    "width" : "100%",
-    "height" : "auto"
+az.add_iframe('hold_elements_cells', 8, {
+    "this_class" : "top_article_barchart",
+    "source" : "visuals/horizontal-bar-chart/"
 })
 
+az.all_style_iframe('top_article_barchart', {
+    "width" : "100%",
+    "height" : "auto",
+    "border" : "none",
+    "outline" : 0
+})
+
+az.style_layout('hold_elements_cells', 1, {
+    "background" : "#b31b1a"
+})
+
+az.style_layout('hold_elements_cells', 2, {
+    "background" : "#b31b1a"
+})
+
+az.style_layout('hold_elements_cells', 4, {
+    "background" : "#b31b1a"
+})
+
+az.style_layout('hold_elements_cells', 5, {
+    "background" : "#1ab2b3"
+})
+
+az.style_layout('hold_elements_cells', 6, {
+    "background" : "#1ab2b3"
+})
+
+az.style_layout('hold_elements_cells', 7, {
+    "background" : "#b31b1a"
+})
+
+az.style_layout('hold_elements_cells', 8, {
+    "background" : "#b31b1a"
+})
+
+az.style_layout('hold_elements_cells', 6, {
+    "valign" : "top"
+})
+
+az.all_style_text('choose_title', {
+    "color" : "white",
+    "font-size" : "22px",
+    "margin-top" : "10px",
+    "margin-bottom" : "10px"
+})
+
+
 }
+
+
+
+
 
 })
 

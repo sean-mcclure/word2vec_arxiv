@@ -14,14 +14,8 @@ function add_drop_events(target_class) {
 						"opacity": 0.5
 					})
 
-						az.add_icon('choose_title', 1, {
-							"this_class": "domain_chosen",
-							"icon_class": "fa-check"
-						})
 
-					az.all_style_icon('domain_chosen', {
-						"color": "yellow"
-					})
+
 					/*
 					if (az.number_of_elements('domain_chosen') == 2) {
 						az.add_text('hold_searching_text', 1, {

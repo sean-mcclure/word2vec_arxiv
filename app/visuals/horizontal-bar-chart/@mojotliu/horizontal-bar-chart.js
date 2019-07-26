@@ -9,7 +9,7 @@ md
   const svg = d3.select(DOM.svg(width, height));
   
   svg.append("g")
-      .attr("fill", "rgb(179, 27, 26)")
+      .attr("fill", "white")
     .selectAll("rect")
     .data(data)
     .join("rect")
@@ -19,7 +19,7 @@ md
       .attr("height", y.bandwidth());
   
   svg.append("g")
-      .attr("fill", "white")
+      .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font", "18px arial")
     .selectAll("text")
@@ -47,21 +47,21 @@ md
 );
   main.variable(observer("data")).define("data", function(){return(
 new Object([{
-  "name": "Deviation from Profile Expectations",
-  "percent": 47,
-  "value": 116
+  "name": "DOC 1",
+  "percent": 0,
+  "value": 0
 }, {
-  "name": "Suspicious Trade Activity",
-  "percent": 26,
-  "value": 64
+  "name": "DOC 2",
+  "percent": 0,
+  "value": 0
 }, {
-  "name": "High Risk Terms",
-  "percent": 16,
-  "value": 40,
+  "name": "DOC 3",
+  "percent": 0,
+  "value": 0,
 }, {
-  "name": "Structuring",
-  "percent": 11,
-  "value": 26,
+  "name": "DOC 4",
+  "percent": 0,
+  "value": 0,
 }])
 )});
   main.variable(observer("format")).define("format", ["x"], function(x){return(
@@ -97,7 +97,7 @@ data.length * 25 + margin.top + margin.bottom
 )});
 
   main.variable(observer("margin")).define("margin", function(){return(
-{top: 30, right: 30, bottom: 10, left: 30}
+{top: 10, right: 30, bottom: 10, left: 30}
 )});
 
   main.variable(observer("d3")).define("d3", ["require"], function(require){return(
