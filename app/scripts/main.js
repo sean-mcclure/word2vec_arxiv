@@ -37,7 +37,6 @@ function parse_arxiv_pdf() {
 					this.selectedIndex = 0
 				})
 			}, 300)
-			az.hold_value.chosen1_text = undefined
 			az.call_once_satisfied({
 				"condition": "typeof(az.hold_value.doc2vec_results)  !== 'undefined'",
 				"function": function() {
@@ -85,7 +84,8 @@ function parse_arxiv_pdf() {
 								"background": "#b31b1a",
 								"color": "white"
 							})
-							$('.top_article_frame').prop('src', az.hold_value.scraped_urls[az.hold_value.doc2vec_results_obj[az.get_target_instance(this_id) - 1].index].url)
+							az.hold_value.most_recent_url = az.hold_value.scraped_urls[az.hold_value.doc2vec_results_obj[az.get_target_instance(this_id) - 1].index].url
+							$('.top_article_frame').prop('src', az.hold_value.most_recent_url)
 							az.add_spinner({
 								"this_class": "view_doc_spinner",
 								"duration": 2000
@@ -105,18 +105,20 @@ function parse_arxiv_pdf() {
 function parse_arxiv_single_paper() {
     params = {
 		"choice": "scrape_single_paper",
-		"single_url": "",
+		"single_url": az.hold_value.most_recent_url,
 		"filename": "data/domain_1_single.txt"
 	}
 	az.call_api({
 		"url": "http://localhost:7777/api/",
 		"parameters": params,
-		"done": "az.hold_value.pdf_parser_single_results = data['response']",
+		"done": function(data) {
+		    az.hold_value.pdf_parser_single_result = data['response']
+		},
 		"fail": "alert('Could not connect to the server.')"
 	})
 	az.add_spinner({
 		"this_class": "scraping_spinner",
-		"condition": "typeof(az.hold_value.pdf_parser_single_results) !== 'undefined'"
+		"condition": "typeof(az.hold_value.word2vec_results) !== 'undefined'"
 	})
 	az.style_spinner('scraping_spinner', 1, {
 		"section_color": "#b31b1a",
@@ -126,7 +128,20 @@ function parse_arxiv_single_paper() {
 		"condition": "az.hold_value.pdf_parser_single_result == 'finished scraping single'",
 		"function": function() {
 		    az.hold_value.pdf_parser_single_result = ''
-		    run_word2vec()
+		    run_word2vec(az.hold_value.chosen1_text)
+		    az.call_once_satisfied({
+				"condition": "typeof(az.hold_value.word2vec_results)  !== 'undefined'",
+				"function": function() {
+					console.log('word2vec_results: ' + az.hold_value.word2vec_results)
+					az.hold_value.word2vec_results_obj = JSON.parse(az.hold_value.word2vec_results.split("'").join('"'))
+					az.post_message_to_frame('top_article_barchart', 2, {
+						"function": function() {
+							main.redefine('data', parent.create_d3_data_words())
+						}
+					})
+					}
+					})
+
 		}
 	})
 }
@@ -140,9 +155,9 @@ function run_word2vec(search_term) {
 		"url": "http://localhost:7777/api/",
 		"parameters": params,
 		"done": function(data) {
-			az.hold_value.doc2vec_results = data['response']
+			az.hold_value.word2vec_results = data['response']
 			setTimeout(function() {
-				az.hold_value.doc2vec_results = undefined
+				//az.hold_value.word2vec_results = undefined
 			}, 2000)
 		},
 		"fail": "alert('Could not connect to the server.')"

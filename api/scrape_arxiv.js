@@ -90,13 +90,14 @@ router.get('/', function(req, res) {
 		})
 	}
 	if (req.query.choice == 'scrape_single_paper') {
+            console.log('scraping single arXiv paper at: ' + req.query.single_url)
             all_text_single = new Array(0)
             crawler(req.query.single_url).then(function(response) {
 			    all_text_single.push(response.text)
 			}).catch(function(err) {
 				console.log('err1 ' + err)
 			})
-			az.call_once_satisfied({
+			call_once_satisfied({
 			    "condition" : "all_text_single.length > 0",
 			    "function" : function() {
                     words_lower = all_text_single.map(v => v.toLowerCase())

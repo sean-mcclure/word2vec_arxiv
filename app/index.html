@@ -23,7 +23,7 @@ az.load_scripts([
 
     az.call_once_satisfied({
 
-        "condition" : "typeof(add_dropdowns) == 'function'",
+        "condition" : "typeof(add_dropdowns) == 'function' && typeof(parse_arxiv_pdf ) == 'function'",
         "function" : function() {
 
 az.load_font('Anton')
@@ -193,6 +193,17 @@ az.add_event('run_scrape_and_model', 1, {
         parse_arxiv_pdf()
         } else {
             alert('Choose a domain and search term.')
+        }
+        }
+})
+
+az.add_event('run_scrape_and_model', 2, {
+    "type" : "click",
+    "function" : function() {
+        if(az.check_exists('hold_pop', 1)) {
+        parse_arxiv_single_paper()
+        } else {
+            alert('Run DOC2VEC first.')
         }
         }
 })

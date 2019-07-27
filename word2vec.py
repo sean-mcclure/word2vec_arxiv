@@ -22,8 +22,15 @@ def word2vec(search_term):
 
     model_ted = FastText(sentences_ted, size=100, window=5, min_count=5, workers=4, sg=1)
 
-    output = model_ted.wv.most_similar(search_term)
+    sims = model_ted.wv.most_similar(search_term)
 
-    res = " ".join(str(x) for x in output)
+    res = []
+    for elem in sims:
+        inner = {}
+        inner['word'] = elem[0]
+        inner['distance'] = elem[1]
+        res.append(inner)
+
+    #res = " ".join(str(x) for x in output)
 
     return (res)
