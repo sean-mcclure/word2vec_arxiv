@@ -18,11 +18,11 @@ function parse_arxiv_pdf() {
 		"section_color": "#b31b1a",
 		"background": "rgba(47, 179, 79, 0.7)"
 	})
+	pop_search_info("Domain: " + az.hold_value.chosen1_text + "<br>Terms: " + az.grab_value('search_term', 1))
 	az.call_once_satisfied({
 		"condition": "az.hold_value.pdf_parser_results == 'finished scraping'",
 		"function": function() {
 			az.hold_value.pdf_parser_results = ''
-			//run_word2vec(az.grab_value('search_term', 1))
 			run_doc2vec(az.grab_value('search_term', 1))
 			az.all_style_dropdown('domain1_dropdown', {
 				"pointer-events": "auto",
@@ -68,8 +68,9 @@ function parse_arxiv_pdf() {
 						az.all_style_button('view_doc_buttons', {
 							"background": "whitesmoke",
 							"border": "1px solid black",
+						    "margin-top" : "60px",
+						    "margin-left" : "5px",
 							"color": "black",
-							"margin": "4px",
 							"outline": 0
 						})
 					})
@@ -97,6 +98,35 @@ function parse_arxiv_pdf() {
 					})
 				}
 			})
+		}
+	})
+}
+
+function parse_arxiv_single_paper() {
+    params = {
+		"choice": "scrape_single_paper",
+		"single_url": "",
+		"filename": "data/domain_1_single.txt"
+	}
+	az.call_api({
+		"url": "http://localhost:7777/api/",
+		"parameters": params,
+		"done": "az.hold_value.pdf_parser_single_results = data['response']",
+		"fail": "alert('Could not connect to the server.')"
+	})
+	az.add_spinner({
+		"this_class": "scraping_spinner",
+		"condition": "typeof(az.hold_value.pdf_parser_single_results) !== 'undefined'"
+	})
+	az.style_spinner('scraping_spinner', 1, {
+		"section_color": "#b31b1a",
+		"background": "rgba(47, 179, 79, 0.7)"
+	})
+	az.call_once_satisfied({
+		"condition": "az.hold_value.pdf_parser_single_result == 'finished scraping single'",
+		"function": function() {
+		    az.hold_value.pdf_parser_single_result = ''
+		    run_word2vec()
 		}
 	})
 }
@@ -135,4 +165,41 @@ function run_doc2vec(search_term) {
 		},
 		"fail": "alert('Could not connect to the server.')"
 	})
+}
+
+function pop_search_info(msg) {
+    az.add_html('main_section', 1, {
+        "html" : "<div class='hold_pop'></div>"
+    })
+    az.style_html('hold_pop', 1, {
+        "width" : "auto",
+        "height" : "auto",
+        "background" : "#b31b1a",
+        "position" : "fixed",
+        "padding" : "10px",
+        "top" : 100,
+        "left" : 0,
+        "border" : "1px solid darkgrey",
+        "box-shadow" : "2px 2px 6px white",
+        "border-radius" : "4px"
+    })
+    az.add_text('hold_pop', 1, {
+       "this_class" : "hold_pop_msg",
+       "text" : msg
+    })
+    az.style_text('hold_pop_msg', 1, {
+        "color" : "white",
+        "font-size" : "18px",
+        "align" : "center"
+    })
+    az.style_word('hold_pop_msg', 1, {
+        "this_class" : "yellow_word_pop",
+        "word" : "Domain",
+        "color" : "yellow"
+    })
+    az.style_word('hold_pop_msg', 1, {
+        "this_class" : "yellow_word_pop2",
+        "word" : "Terms",
+        "color" : "yellow"
+    })
 }
