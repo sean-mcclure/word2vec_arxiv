@@ -99,7 +99,7 @@ function create_d3_data_words() {
 	document_titles.forEach(function(value, i) {
 		if(i < 5) {
 		inner = {}
-		inner.name = 'WORD ' + document_titles[i]
+		inner.name = document_titles[i]
 		inner.percent = distances_norm[i]
 		inner.value = distances_norm[i]
 		outer.push(inner)

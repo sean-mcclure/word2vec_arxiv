@@ -23,7 +23,8 @@ function parse_arxiv_pdf() {
 		"condition": "az.hold_value.pdf_parser_results == 'finished scraping'",
 		"function": function() {
 			az.hold_value.pdf_parser_results = ''
-			run_doc2vec(az.grab_value('search_term', 1))
+			az.hold_value.search_term = az.grab_value('search_term', 1)
+			run_doc2vec(az.hold_value.search_term)
 			az.all_style_dropdown('domain1_dropdown', {
 				"pointer-events": "auto",
 				"opacity": 1
@@ -96,6 +97,9 @@ function parse_arxiv_pdf() {
 							})
 						}
 					})
+					setTimeout(function() {
+					az.click_element('view_doc_buttons', 1)
+					}, 2000)
 				}
 			})
 		}
@@ -128,7 +132,7 @@ function parse_arxiv_single_paper() {
 		"condition": "az.hold_value.pdf_parser_single_result == 'finished scraping single'",
 		"function": function() {
 		    az.hold_value.pdf_parser_single_result = ''
-		    run_word2vec(az.hold_value.chosen1_text)
+		    run_word2vec(az.hold_value.search_term)
 		    az.call_once_satisfied({
 				"condition": "typeof(az.hold_value.word2vec_results)  !== 'undefined'",
 				"function": function() {

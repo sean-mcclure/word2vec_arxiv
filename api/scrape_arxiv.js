@@ -101,21 +101,28 @@ router.get('/', function(req, res) {
 			    "condition" : "all_text_single.length > 0",
 			    "function" : function() {
                     words_lower = all_text_single.map(v => v.toLowerCase())
-                    no_specials = words_lower.join(' ').replace(/[^a-zA-Z ]/g, "")
-                    no_stops = remove_stopwords(no_specials)
-                    fs.writeFile(req.query.filename, JSON.stringify(no_stops), function(err) {
-					if (err) {
-						return console.log(err);
-					}
-					console.log("arxiv single scrape saved!");
-				});
-				res.json({
-				"response": "finished scraping single"
-			})
+                        no_specials = words_lower.join(' ').replace(/[^a-zA-Z ]/g, "")
+                        no_stops = remove_stopwords(no_specials)
+                        fs.writeFile(req.query.filename, JSON.stringify(no_stops), function(err) {
+					    if (err) {
+						    return console.log(err);
+					    }
+					    console.log("arxiv single scrape saved!");
+				        })
+
+				        res.json({
+				            "response": "finished scraping single"
+			            })
+
+
+
+                    }
+
+
+			    })
 			    }
 			})
-	}
-})
+
 
 function call_callback(cb) {
 	cb
