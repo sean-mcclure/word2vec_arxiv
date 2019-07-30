@@ -57,16 +57,16 @@ new Object([{
 }, {
   "name": "DOC 3",
   "percent": 0,
-  "value": 0,
+  "value": 0
 }, {
   "name": "DOC 4",
   "percent": 0,
-  "value": 0,
+  "value": 0
 },
 {
   "name": "DOC 5",
   "percent": 0,
-  "value": 0,
+  "value": 0
 }])
 )});
   main.variable(observer("format")).define("format", ["x"], function(x){return(

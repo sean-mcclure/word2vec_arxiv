@@ -38,6 +38,4 @@ def word2vec(search_term):
         inner['distance'] = elem[1]
         res.append(inner)
 
-    #res = " ".join(str(x) for x in output)
-
     return (res)
