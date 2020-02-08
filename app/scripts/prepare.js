@@ -4,7 +4,9 @@ az.call_once_satisfied({
 		az.load_font('Anton')
 		az.style_body({
 			"background": "#64E8E8",
-			"font-family": "Anton"
+			"font-family": "Anton",
+			"min-width" : "1200px",
+			"max-width" : "1400px"
 		})
 		az.add_sections({
 			"this_class": "main_section",

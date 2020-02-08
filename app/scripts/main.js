@@ -41,7 +41,6 @@ function parse_arxiv_pdf() {
 			az.call_once_satisfied({
 				"condition": "typeof(az.hold_value.doc2vec_results)  !== 'undefined'",
 				"function": function() {
-					console.log('doc2vec_results: ' + az.hold_value.doc2vec_results)
 					az.all_remove_element('view_doc_buttons')
 					az.hold_value.doc2vec_results_obj = JSON.parse(az.hold_value.doc2vec_results.split("'").join('"'))
 					closet_obj = az.hold_value.doc2vec_results_obj.filter(function(value, index) {
