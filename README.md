@@ -1,33 +1,25 @@
-# ARXIV DISCOVERY TOOL
 
-The arXiv discovery tool helps aid scientific discovery by mining the latent knowledge in published articles.
+# ARXIV DISCOVERY TOOL  
+  
+The **arXiv Discovery Tool** aids researchers in making discoveries across apparently disparate domains, by mining the latent knowledge in published STEM articles. The application uses [word and document embeddings](https://en.wikipedia.org/wiki/Word_embedding) to retrieve articles that discuss their work in a [similar](https://en.wikipedia.org/wiki/Cosie_similarity) context to a searched term. 
 
-# MainDirectories and Files
-- **api**
-- **app**
-- **data**
-- **logs**
-- **node_modules**
-- index.html
+This application was inspired by the Nature [article](https://perssongroup.lbl.gov/papers/dagdelen-2019-word-embeddings.pdf) titled **Unsupervised word embeddings capture latent knowledge from materials science literature**. 
 
-Core files are kept in the **scripts** directory. These scripts are loaded via Azle's **az.load_scripts** function found in the **index.html** file.
+  
+## Running the Application  
 
-## Running the Application
+### Start REST API
+  
+    node api/scrapre_arxiv.js  
+    
+### Start web service
 
-    node api/scrapre_arxiv.js
+    node api/scrape_arxiv.js
 
-## Application Flow
+ ### Open Browser
 
-![enter image description here](https://collaboratescience.com/private/mermaid.png)
+    python3 -m http.server
 
-
-## Testing
-
-### Unit Testing
-The Application is tested using Azle's internal testing framework. To run unit tests open your browser console and do the following:
-- az.load_script('tests/tests.js')
-- run_tests_window()
-
-## Support
-
-For Azle support, please use [Stack Overflow](https://stackoverflow.com/questions/ask?tags=azle%20javascript). f
+## Support  
+  
+Please reach out to this project's author for support in running or augmenting the application. For Azle support, please use [Stack Overflow](https://stackoverflow.com/questions/ask?tags=azle%20javascript). 

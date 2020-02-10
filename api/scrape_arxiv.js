@@ -135,4 +135,4 @@ function call_once_satisfied(props) {
 }
 app.use('/api', router);
 app.listen(port);
-console.log('Running Python backbone API on port: ' + port);
+console.log('Running arXiv Discovery Tool on port: ' + port);
