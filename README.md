@@ -14,11 +14,11 @@ This application was inspired by the Nature [article](https://perssongroup.lbl.g
     
 ### Start web service
 
-    node api/scrape_arxiv.js
+    python3 -m http.server
 
  ### Open Browser
 
-    python3 -m http.server
+    http://localhost:8000/app/
 
 ## Support  
   
