@@ -12,7 +12,7 @@
     "cheerio": "^1.0.0-rc.3",
     "crawler-request": "^1.2.2",
     "express": "^4.17.1",
-    "fast-csv": "^3.1.0",
+    "fast-csv": "^4.3.6",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "stopword": "^0.3.2"
