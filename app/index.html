@@ -1,26 +1,170 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-<script src='https://azlejs.com/v2/azle.min.js'></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arXiv AI Discovery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <img src="https://pbs.twimg.com/profile_images/958432197987401728/QLeEVLC__400x400.jpg" alt="arXiv Logo" class="logo">
+                <h1 class="title">arXiv AI Discovery</h1>
+                <p class="subtitle">Explore research papers with AI-powered semantic analysis</p>
+            </div>
+        </header>
+
+        <!-- API Key Setup -->
+        <div id="api-key-section" class="section api-key-section">
+            <div class="card">
+                <h2>🔑 OpenAI API Key</h2>
+                <p class="hint">Enter your OpenAI API key to enable AI-powered analysis</p>
+                <div class="input-group">
+                    <input type="password" id="api-key-input" placeholder="sk-..." class="input">
+                    <button id="save-api-key" class="btn btn-primary">Save Key</button>
+                </div>
+                <p class="hint-small">Your key is stored locally and never sent to any server except OpenAI</p>
+            </div>
+        </div>
+
+        <!-- Main App (hidden until API key is set) -->
+        <div id="main-app" style="display: none;">
+            <!-- Cross-Domain Search Section -->
+            <section class="section">
+                <div class="card">
+                    <h2>🔬 Cross-Domain Discovery</h2>
+                    <p class="hint">Search across multiple research domains to discover surprising analogical connections</p>
+                    
+                    <div class="domain-search-container">
+                        <!-- Domain 1 -->
+                        <div class="domain-search-box">
+                            <h3>Domain 1</h3>
+                            <div class="form-group">
+                                <label>Research Area</label>
+                                <select class="domain-category select" data-domain="1">
+                                    <option value="cs.AI">Computer Science - AI</option>
+                                    <option value="cs.LG">Computer Science - ML</option>
+                                    <option value="cs.CV">Computer Science - Vision</option>
+                                    <option value="cs.CL">Computer Science - NLP</option>
+                                    <option value="cs.RO">Computer Science - Robotics</option>
+                                    <option value="cs.NE">Computer Science - Neural Networks</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Topic/Concept</label>
+                                <input type="text" class="domain-query input" data-domain="1" placeholder="e.g., attention mechanisms">
+                            </div>
+                        </div>
+
+                        <!-- Domain 2 -->
+                        <div class="domain-search-box">
+                            <h3>Domain 2</h3>
+                            <div class="form-group">
+                                <label>Research Area</label>
+                                <select class="domain-category select" data-domain="2">
+                                    <option value="q-bio.NC">Biology - Neuroscience</option>
+                                    <option value="q-bio.MN">Biology - Molecular Networks</option>
+                                    <option value="q-bio.CB">Biology - Cell Behavior</option>
+                                    <option value="q-bio.BM">Biology - Biomolecules</option>
+                                    <option value="physics.bio-ph">Physics - Biological Physics</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Topic/Concept</label>
+                                <input type="text" class="domain-query input" data-domain="2" placeholder="e.g., neural signaling">
+                            </div>
+                        </div>
+
+                        <!-- Domain 3 (Optional) -->
+                        <div class="domain-search-box">
+                            <h3>Domain 3 <span class="optional">(Optional)</span></h3>
+                            <div class="form-group">
+                                <label>Research Area</label>
+                                <select class="domain-category select" data-domain="3">
+                                    <option value="">-- None --</option>
+                                    <option value="cond-mat.mtrl-sci">Materials Science</option>
+                                    <option value="cond-mat.soft">Soft Matter</option>
+                                    <option value="cond-mat.stat-mech">Statistical Mechanics</option>
+                                    <option value="physics.chem-ph">Chemical Physics</option>
+                                    <option value="math.DS">Mathematics - Dynamical Systems</option>
+                                    <option value="nlin.AO">Nonlinear - Adaptation</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Topic/Concept</label>
+                                <input type="text" class="domain-query input" data-domain="3" placeholder="e.g., phase transitions">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Papers per Domain</label>
+                        <input type="number" id="papers-per-domain" class="input" value="8" min="5" max="15" style="max-width: 150px;">
+                    </div>
+
+                    <button id="discover-btn" class="btn btn-primary btn-large">🚀 Discover Connections</button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="section" style="display: none;">
+                <div class="card">
+                    <h2>📚 Papers by Domain</h2>
+                    <div id="papers-by-domain" class="papers-by-domain"></div>
+                </div>
+            </section>
+
+            <!-- Discovery Section -->
+            <section id="discovery-section" class="section" style="display: none;">
+                <div class="card">
+                    <h2>💡 Analogical Connections</h2>
+                    <p class="hint">AI-discovered cross-domain patterns and analogies</p>
+                    <div id="connections-container" class="connections-container"></div>
+                </div>
+            </section>
+
+            <!-- Hypotheses Section -->
+            <section id="hypotheses-section" class="section" style="display: none;">
+                <div class="card">
+                    <h2>🔮 Research Hypotheses</h2>
+                    <p class="hint">Novel research directions suggested by cross-domain insights</p>
+                    <div id="hypotheses-container" class="hypotheses-container"></div>
+                </div>
+            </section>
+
+            <!-- Patterns Section -->
+            <section id="patterns-section" class="section" style="display: none;">
+                <div class="card">
+                    <h2>🧩 Universal Patterns</h2>
+                    <p class="hint">Fundamental principles that transcend specific domains</p>
+                    <div id="patterns-container" class="patterns-container"></div>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <section id="action-section" class="section" style="display: none;">
+                <div class="action-buttons">
+                    <button id="find-analogies-btn" class="btn btn-primary">🔗 Find Deep Analogies</button>
+                    <button id="generate-hypotheses-btn" class="btn btn-secondary">💭 Generate Hypotheses</button>
+                    <button id="extract-patterns-btn" class="btn btn-secondary">🧩 Extract Patterns</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p id="loading-text">Loading...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="scripts/app.js"></script>
 </body>
 </html>
-
-<script>
-
-create_azle(function() {
-
-az.load_scripts([
-    'scripts/prepare.js',
-    'scripts/main.js',
-    'scripts/dropdowns.js',
-    'scripts/events.js',
-    'scripts/data.js'
-    ])
-
-})
-
-</script>
