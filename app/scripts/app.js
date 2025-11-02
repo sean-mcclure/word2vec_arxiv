@@ -87,8 +87,9 @@ async function discoverConnections() {
         hideLoading();
         showToast('Papers loaded! Now discovering connections...', 'success');
         
-        // Show action buttons
+        // Show action buttons and update stats
         document.getElementById('action-section').style.display = 'block';
+        updateStats();
         
         // Auto-start finding analogies
         setTimeout(() => findDeepAnalogies(), 1000);
@@ -250,8 +251,12 @@ Return JSON:
         state.connections = [...state.connections, ...newConnections];
         
         displayConnections();
+        updateStats();
         hideLoading();
         showToast(`Found ${newConnections.length} new analogies!`, 'success');
+        
+        // Scroll to connections section
+        document.getElementById('discovery-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
         hideLoading();
@@ -398,8 +403,12 @@ Return JSON:
         state.hypotheses = [...state.hypotheses, ...newHypotheses];
         
         displayHypotheses();
+        updateStats();
         hideLoading();
         showToast(`Generated ${newHypotheses.length} new hypotheses!`, 'success');
+        
+        // Scroll to hypotheses section
+        document.getElementById('hypotheses-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
         hideLoading();
@@ -510,6 +519,7 @@ Return JSON:
         
         const result = parseJSONResponse(response);
         displayPatterns(result.patterns);
+        updateStats();
         hideLoading();
         showToast('Patterns extracted!', 'success');
         
@@ -595,6 +605,37 @@ function parseJSONResponse(response) {
     }
     
     return JSON.parse(cleaned.trim());
+}
+
+// Update Stats
+function updateStats() {
+    document.getElementById('connections-count').textContent = state.connections.length;
+    document.getElementById('hypotheses-count').textContent = state.hypotheses.length;
+    
+    // Update button text based on state
+    const analogiesBtn = document.getElementById('find-analogies-btn');
+    const hypothesesBtn = document.getElementById('generate-hypotheses-btn');
+    const patternsBtn = document.getElementById('extract-patterns-btn');
+    
+    if (state.connections.length === 0) {
+        analogiesBtn.textContent = '🔗 Find Deep Analogies';
+    } else {
+        analogiesBtn.textContent = '🔗 Find More Analogies';
+    }
+    
+    if (state.hypotheses.length === 0) {
+        hypothesesBtn.textContent = '💭 Generate Hypotheses';
+    } else {
+        hypothesesBtn.textContent = '💭 Generate More Hypotheses';
+    }
+    
+    // Check if patterns have been extracted
+    const patternsSection = document.getElementById('patterns-section');
+    if (patternsSection.style.display === 'block') {
+        patternsBtn.textContent = '🧩 Extract More Patterns';
+    } else {
+        patternsBtn.textContent = '🧩 Extract Patterns';
+    }
 }
 
 // UI Utilities
