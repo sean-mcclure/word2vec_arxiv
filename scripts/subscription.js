@@ -21,9 +21,14 @@ class SubscriptionManager {
                 throw new Error('Must be logged in to subscribe');
             }
 
+            // Store pending subscription status
+            user.set('pendingSubscription', true);
+            user.set('subscriptionInitiatedAt', new Date());
+            await user.save();
+
             // Redirect directly to Stripe Payment Link with prefilled email
             const email = user.get('email');
-            const paymentUrl = `${STRIPE_CONFIG.paymentLink}?prefilled_email=${encodeURIComponent(email)}&client_reference_id=${user.id}`;
+            const paymentUrl = `${STRIPE_CONFIG.paymentLink}?prefilled_email=${encodeURIComponent(email)}`;
             
             window.location.href = paymentUrl;
         } catch (error) {

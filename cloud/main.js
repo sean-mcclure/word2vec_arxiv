@@ -59,33 +59,41 @@ Parse.Cloud.define('createPortalSession', async (request) => {
     }
 });
 
-// Stripe Webhook Handler
-Parse.Cloud.define('stripeWebhook', async (request) => {
-    const sig = request.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+// Stripe Webhook Handler (called via Express endpoint)
+Parse.Cloud.define('handleStripeWebhook', async (request) => {
+    const event = request.params.event;
     
-    let event;
-    
-    try {
-        event = stripe.webhooks.constructEvent(request.body, sig, webhookSecret);
-    } catch (err) {
-        throw new Parse.Error(Parse.Error.INVALID_JSON, `Webhook Error: ${err.message}`);
+    if (!event) {
+        throw new Parse.Error(Parse.Error.INVALID_JSON, 'No event provided');
     }
 
     // Handle the event
     switch (event.type) {
         case 'checkout.session.completed': {
             const session = event.data.object;
-            const userId = session.metadata.userId || session.client_reference_id;
+            const customerEmail = session.customer_details?.email || session.customer_email;
             
+            if (!customerEmail) {
+                console.error('No email found in session:', session.id);
+                break;
+            }
+            
+            // Find user by email
             const query = new Parse.Query(Parse.User);
-            const user = await query.get(userId, { useMasterKey: true });
+            query.equalTo('email', customerEmail);
+            const user = await query.first({ useMasterKey: true });
+            
+            if (!user) {
+                console.error('No user found with email:', customerEmail);
+                break;
+            }
             
             user.set('stripeCustomerId', session.customer);
             user.set('stripeSubscriptionId', session.subscription);
             user.set('subscriptionStatus', 'active');
             user.set('subscriptionExpiresAt', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
             user.set('usageCount', 0); // Reset usage on new subscription
+            user.unset('pendingSubscription');
             
             await user.save(null, { useMasterKey: true });
             break;
