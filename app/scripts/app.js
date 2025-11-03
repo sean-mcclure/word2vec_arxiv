@@ -1,51 +1,246 @@
 // App State
 const state = {
-    apiKey: localStorage.getItem('openai_api_key') || '',
     domainPapers: {
         domain1: [],
         domain2: [],
         domain3: []
     },
     connections: [],
-    hypotheses: []
+    hypotheses: [],
+    user: null,
+    subscription: null
 };
 
 // Initialize App
-document.addEventListener('DOMContentLoaded', () => {
-    if (state.apiKey) {
-        showMainApp();
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeApp();
     setupEventListeners();
+    setupAuthListeners();
 });
 
-// Event Listeners
-function setupEventListeners() {
-    document.getElementById('save-api-key').addEventListener('click', saveApiKey);
-    document.getElementById('discover-btn').addEventListener('click', discoverConnections);
-    document.getElementById('find-analogies-btn').addEventListener('click', findDeepAnalogies);
-    document.getElementById('generate-hypotheses-btn').addEventListener('click', generateHypotheses);
-    document.getElementById('extract-patterns-btn').addEventListener('click', extractPatterns);
+// Initialize application
+async function initializeApp() {
+    // Initialize Stripe
+    await subscriptionManager.initialize();
+    
+    // Check if user is logged in
+    if (authManager.isAuthenticated()) {
+        state.user = authManager.getCurrentUser();
+        
+        // Check subscription status
+        const subStatus = await authManager.checkSubscription();
+        
+        if (subStatus.active) {
+            showMainApp();
+            updateUserMenu();
+        } else {
+            showSubscriptionRequired();
+        }
+    } else {
+        showAuthSection();
+    }
 }
 
-// API Key Management
-function saveApiKey() {
-    const input = document.getElementById('api-key-input');
-    const key = input.value.trim();
-    
-    if (!key.startsWith('sk-')) {
-        showToast('Invalid API key format', 'error');
-        return;
-    }
-    
-    state.apiKey = key;
-    localStorage.setItem('openai_api_key', key);
-    showToast('API key saved successfully', 'success');
-    showMainApp();
+// Show different sections
+function showAuthSection() {
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('subscription-section').style.display = 'none';
+    document.getElementById('main-app').style.display = 'none';
+}
+
+function showSubscriptionRequired() {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('subscription-section').style.display = 'block';
+    document.getElementById('main-app').style.display = 'none';
+    updateUserMenu();
 }
 
 function showMainApp() {
-    document.getElementById('api-key-section').style.display = 'none';
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('subscription-section').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
+    updateUserMenu();
+}
+
+// Update user menu
+function updateUserMenu() {
+    const user = authManager.getCurrentUser();
+    if (!user) return;
+    
+    // Create user menu if it doesn't exist
+    if (!document.getElementById('user-menu')) {
+        const menu = document.createElement('div');
+        menu.id = 'user-menu';
+        menu.className = 'user-menu';
+        menu.innerHTML = `
+            <button class="user-button" id="user-menu-btn">
+                <span id="user-name">${user.get('name') || user.get('email')}</span>
+                <span>▼</span>
+            </button>
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="usage-indicator">
+                    <div id="usage-text">Loading...</div>
+                    <div class="usage-bar">
+                        <div class="usage-bar-fill" id="usage-bar-fill"></div>
+                    </div>
+                </div>
+                <div class="user-dropdown-item" id="manage-subscription">Manage Subscription</div>
+                <div class="user-dropdown-item" id="logout-btn">Sign Out</div>
+            </div>
+        `;
+        document.body.appendChild(menu);
+        
+        // Add event listeners
+        document.getElementById('user-menu-btn').addEventListener('click', () => {
+            document.getElementById('user-dropdown').classList.toggle('show');
+        });
+        
+        document.getElementById('manage-subscription').addEventListener('click', async () => {
+            await subscriptionManager.createPortalSession();
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await authManager.logOut();
+            location.reload();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#user-menu')) {
+                document.getElementById('user-dropdown').classList.remove('show');
+            }
+        });
+    }
+    
+    // Update usage stats
+    updateUsageStats();
+}
+
+// Update usage statistics
+async function updateUsageStats() {
+    try {
+        const stats = await Parse.Cloud.run('getUsageStats');
+        const percentage = (stats.usageCount / stats.usageLimit) * 100;
+        
+        document.getElementById('usage-text').textContent = 
+            `${stats.usageCount} / ${stats.usageLimit} discoveries used`;
+        document.getElementById('usage-bar-fill').style.width = `${percentage}%`;
+    } catch (error) {
+        console.error('Error fetching usage stats:', error);
+    }
+}
+
+// Setup auth event listeners
+function setupAuthListeners() {
+    // Login
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        
+        if (!email || !password) {
+            showToast('Please fill in all fields', 'error');
+            return;
+        }
+        
+        showLoading('Signing in...');
+        const result = await authManager.logIn(email, password);
+        hideLoading();
+        
+        if (result.success) {
+            state.user = result.user;
+            const subStatus = await authManager.checkSubscription();
+            
+            if (subStatus.active) {
+                showMainApp();
+            } else {
+                showSubscriptionRequired();
+            }
+        } else {
+            showToast(result.error, 'error');
+        }
+    });
+    
+    // Signup
+    document.getElementById('signup-btn').addEventListener('click', async () => {
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        
+        if (!name || !email || !password) {
+            showToast('Please fill in all fields', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            showToast('Password must be at least 6 characters', 'error');
+            return;
+        }
+        
+        showLoading('Creating account...');
+        const result = await authManager.signUp(email, password, name);
+        hideLoading();
+        
+        if (result.success) {
+            state.user = result.user;
+            showSubscriptionRequired();
+        } else {
+            showToast(result.error, 'error');
+        }
+    });
+    
+    // Subscribe
+    document.getElementById('subscribe-btn').addEventListener('click', async () => {
+        try {
+            showLoading('Redirecting to checkout...');
+            await subscriptionManager.createCheckoutSession();
+        } catch (error) {
+            hideLoading();
+            showToast('Error: ' + error.message, 'error');
+        }
+    });
+    
+    // Toggle views
+    document.getElementById('show-signup').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('signup-view').style.display = 'block';
+    });
+    
+    document.getElementById('show-login').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('signup-view').style.display = 'none';
+        document.getElementById('login-view').style.display = 'block';
+    });
+    
+    // Forgot password
+    document.getElementById('forgot-password').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = prompt('Enter your email address:');
+        if (email) {
+            showLoading('Sending reset email...');
+            const result = await authManager.resetPassword(email);
+            hideLoading();
+            
+            if (result.success) {
+                showToast('Password reset email sent!', 'success');
+            } else {
+                showToast(result.error, 'error');
+            }
+        }
+    });
+}
+
+// Event Listeners
+function setupEventListeners() {
+    const discoverBtn = document.getElementById('discover-btn');
+    const findAnalogiesBtn = document.getElementById('find-analogies-btn');
+    const generateHypothesesBtn = document.getElementById('generate-hypotheses-btn');
+    const extractPatternsBtn = document.getElementById('extract-patterns-btn');
+    
+    if (discoverBtn) discoverBtn.addEventListener('click', discoverConnections);
+    if (findAnalogiesBtn) findAnalogiesBtn.addEventListener('click', findDeepAnalogies);
+    if (generateHypothesesBtn) generateHypothesesBtn.addEventListener('click', generateHypotheses);
+    if (extractPatternsBtn) extractPatternsBtn.addEventListener('click', extractPatterns);
 }
 
 // Cross-Domain Discovery
@@ -569,28 +764,39 @@ function displayPatterns(patterns) {
     document.getElementById('patterns-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// OpenAI API Call
+// OpenAI API Call via Back4App Cloud Function
 async function callOpenAI(messages, temperature = 0.7) {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.apiKey}`
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: messages,
-            temperature: temperature
-        })
-    });
-    
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'OpenAI API error');
+    // Check authentication
+    if (!authManager.isAuthenticated()) {
+        throw new Error('Must be logged in');
     }
     
-    const data = await response.json();
-    return data.choices[0].message.content;
+    // Check subscription
+    const subStatus = await authManager.checkSubscription();
+    if (!subStatus.active) {
+        throw new Error('Active subscription required');
+    }
+    
+    // Check usage limits
+    const usageCheck = await authManager.checkUsageLimit();
+    if (!usageCheck.allowed) {
+        throw new Error(usageCheck.message);
+    }
+    
+    try {
+        // Call Back4App Cloud Function (which proxies to OpenAI with your API key)
+        const result = await Parse.Cloud.run('callOpenAI', {
+            messages: messages,
+            temperature: temperature
+        });
+        
+        // Update usage stats in UI
+        updateUsageStats();
+        
+        return result.content;
+    } catch (error) {
+        throw new Error(error.message || 'AI request failed');
+    }
 }
 
 // Parse JSON Response (handles markdown wrapping)

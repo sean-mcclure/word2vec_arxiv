@@ -3,31 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>arXiv AI Discovery</title>
+    <title>LatentLink - Cross-Domain Research Discovery</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Parse SDK -->
+    <script src="https://npmcdn.com/parse@3.4.4/dist/parse.min.js"></script>
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <img src="arxiv_logo.webp" alt="arXiv Logo" class="logo">
-                <h1 class="title">arXiv AI Discovery</h1>
-                <p class="subtitle">Explore research papers with AI-powered semantic analysis</p>
+                <img src="logo.webp" alt="LatentLink Logo" class="logo">
+                <h1 class="title">LatentLink</h1>
+                <p class="subtitle">Discover deep connections across research domains</p>
             </div>
         </header>
 
-        <!-- API Key Setup -->
-        <div id="api-key-section" class="section api-key-section">
+        <!-- Auth Section (Login/Signup) -->
+        <div id="auth-section" class="section auth-section">
             <div class="card">
-                <h2>🔑 OpenAI API Key</h2>
-                <p class="hint">Enter your OpenAI API key to enable AI-powered analysis</p>
-                <div class="input-group">
-                    <input type="password" id="api-key-input" placeholder="sk-..." class="input">
-                    <button id="save-api-key" class="btn btn-primary">Save Key</button>
+                <div id="login-view">
+                    <h2>Welcome to LatentLink</h2>
+                    <p class="hint">Sign in to discover deep connections across research domains</p>
+                    
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="login-email" class="input" placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="login-password" class="input" placeholder="••••••••">
+                        </div>
+                        <button id="login-btn" class="btn btn-primary btn-large">Sign In</button>
+                        <p class="auth-switch">
+                            Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                        </p>
+                        <p class="auth-switch">
+                            <a href="#" id="forgot-password">Forgot password?</a>
+                        </p>
+                    </div>
                 </div>
-                <p class="hint-small">Your key is stored locally and never sent to any server except OpenAI</p>
+
+                <div id="signup-view" style="display: none;">
+                    <h2>Create Your Account</h2>
+                    <p class="hint">Start discovering cross-domain connections</p>
+                    
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="signup-name" class="input" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="signup-email" class="input" placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="signup-password" class="input" placeholder="••••••••">
+                        </div>
+                        <button id="signup-btn" class="btn btn-primary btn-large">Create Account</button>
+                        <p class="auth-switch">
+                            Already have an account? <a href="#" id="show-login">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Required Section -->
+        <div id="subscription-section" class="section" style="display: none;">
+            <div class="card">
+                <h2>🚀 Subscribe to LatentLink</h2>
+                <p class="hint">Unlock unlimited cross-domain discovery</p>
+                
+                <div class="pricing-card">
+                    <div class="price">$9.99<span class="period">/month</span></div>
+                    <ul class="features-list">
+                        <li>✓ Up to 100 discoveries per month</li>
+                        <li>✓ AI-powered analogical reasoning</li>
+                        <li>✓ Cross-domain pattern extraction</li>
+                        <li>✓ Hypothesis generation</li>
+                        <li>✓ Access to all research domains</li>
+                    </ul>
+                    <button id="subscribe-btn" class="btn btn-primary btn-large">Subscribe Now</button>
+                </div>
+                
+                <p class="hint-small">Cancel anytime. No long-term commitment.</p>
             </div>
         </div>
 
@@ -37,7 +104,7 @@
             <section class="section">
                 <div class="card">
                     <h2>🔬 Cross-Domain Discovery</h2>
-                    <p class="hint">Search across multiple research domains to discover surprising analogical connections</p>
+                    <p class="hint">Uncover latent similarities between disparate research fields through AI-powered analogical reasoning</p>
                     
                     <div class="domain-search-container">
                         <!-- Domain 1 -->
@@ -180,6 +247,10 @@
         <div id="toast-container" class="toast-container"></div>
     </div>
 
+    <!-- Load scripts in order -->
+    <script src="scripts/back4app-config.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/subscription.js"></script>
     <script src="scripts/app.js"></script>
 </body>
 </html>

@@ -49,11 +49,13 @@ body {
 }
 
 .logo {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     margin-bottom: 20px;
     border: 4px solid white;
+    background: white;
+    object-fit: scale-down;
 }
 
 .title {
@@ -382,10 +384,150 @@ body {
     }
 }
 
-/* API Key Section */
-.api-key-section {
-    max-width: 600px;
+/* Auth Section */
+.auth-section {
+    max-width: 500px;
     margin: 0 auto;
+}
+
+.auth-form {
+    margin-top: 20px;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 16px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.auth-switch a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+/* Pricing Card */
+.pricing-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    margin: 24px 0;
+}
+
+.price {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 24px;
+}
+
+.period {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    text-align: left;
+}
+
+.features-list li {
+    padding: 12px 0;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.features-list li:last-child {
+    border-bottom: none;
+}
+
+/* User Menu */
+.user-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.user-button {
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-button:hover {
+    background: var(--bg-secondary);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    display: none;
+}
+
+.user-dropdown.show {
+    display: block;
+}
+
+.user-dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+}
+
+.user-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.user-dropdown-item:hover {
+    background: var(--bg-secondary);
+}
+
+.usage-indicator {
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.usage-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.usage-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
 }
 
 /* Domain Search */
