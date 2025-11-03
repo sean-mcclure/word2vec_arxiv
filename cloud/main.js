@@ -13,7 +13,6 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             customer_email: email,
             client_reference_id: userId,
             payment_method_types: ['card'],
-            payment_method_collection: 'always',
             line_items: [{
                 price: priceId,
                 quantity: 1,
@@ -23,6 +22,15 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             cancel_url: `${process.env.APP_URL}/`,
             metadata: {
                 userId: userId
+            },
+            payment_method_options: {
+                card: {
+                    setup_future_usage: 'off_session'
+                }
+            },
+            // Disable Link to show card form by default
+            automatic_payment_methods: {
+                enabled: false
             }
         });
 
