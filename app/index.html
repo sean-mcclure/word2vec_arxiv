@@ -80,7 +80,7 @@
         <div id="subscription-section" class="section" style="display: none;">
             <div class="card">
                 <h2>🚀 Subscribe to LatentLink</h2>
-                <p class="hint">Unlock unlimited cross-domain discovery</p>
+                <p class="hint">Unlock AI-powered cross-domain discovery</p>
                 
                 <div class="pricing-card">
                     <div class="price">$9.99<span class="period">/month</span></div>
@@ -245,6 +245,21 @@
 
         <!-- Toast Notifications -->
         <div id="toast-container" class="toast-container"></div>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgot-password-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Reset Password</h3>
+                <p>Enter your email address and we'll send you a password reset link.</p>
+                <div class="form-group">
+                    <input type="email" id="reset-email" class="input" placeholder="your@email.com">
+                </div>
+                <div class="modal-buttons">
+                    <button id="send-reset-btn" class="btn btn-primary">Send Reset Link</button>
+                    <button id="cancel-reset-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Load scripts in order -->

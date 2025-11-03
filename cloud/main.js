@@ -13,12 +13,13 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             customer_email: email,
             client_reference_id: userId,
             payment_method_types: ['card'],
+            payment_method_collection: 'always',
             line_items: [{
                 price: priceId,
                 quantity: 1,
             }],
             mode: 'subscription',
-            success_url: `${process.env.APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.APP_URL}/?success=true`,
             cancel_url: `${process.env.APP_URL}/`,
             metadata: {
                 userId: userId

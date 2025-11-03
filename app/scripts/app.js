@@ -213,19 +213,42 @@ function setupAuthListeners() {
     });
     
     // Forgot password
-    document.getElementById('forgot-password').addEventListener('click', async (e) => {
+    document.getElementById('forgot-password').addEventListener('click', (e) => {
         e.preventDefault();
-        const email = prompt('Enter your email address:');
-        if (email) {
-            showLoading('Sending reset email...');
-            const result = await authManager.resetPassword(email);
-            hideLoading();
-            
-            if (result.success) {
-                showToast('Password reset email sent!', 'success');
-            } else {
-                showToast(result.error, 'error');
-            }
+        document.getElementById('forgot-password-modal').style.display = 'flex';
+        document.getElementById('reset-email').value = '';
+        document.getElementById('reset-email').focus();
+    });
+    
+    // Send reset email
+    document.getElementById('send-reset-btn').addEventListener('click', async () => {
+        const email = document.getElementById('reset-email').value.trim();
+        if (!email) {
+            showToast('Please enter your email address', 'error');
+            return;
+        }
+        
+        document.getElementById('forgot-password-modal').style.display = 'none';
+        showLoading('Sending reset email...');
+        const result = await authManager.resetPassword(email);
+        hideLoading();
+        
+        if (result.success) {
+            showToast('Password reset email sent!', 'success');
+        } else {
+            showToast(result.error, 'error');
+        }
+    });
+    
+    // Cancel reset
+    document.getElementById('cancel-reset-btn').addEventListener('click', () => {
+        document.getElementById('forgot-password-modal').style.display = 'none';
+    });
+    
+    // Close modal on outside click
+    document.getElementById('forgot-password-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'forgot-password-modal') {
+            document.getElementById('forgot-password-modal').style.display = 'none';
         }
     });
 }
