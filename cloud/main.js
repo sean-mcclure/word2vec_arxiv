@@ -23,13 +23,8 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             metadata: {
                 userId: userId
             },
-            payment_method_options: {
-                card: {
-                    setup_future_usage: 'off_session'
-                }
-            },
-            // Disable Link to show card form by default
-            automatic_payment_methods: {
+            // Don't collect phone number (reduces friction)
+            phone_number_collection: {
                 enabled: false
             }
         });

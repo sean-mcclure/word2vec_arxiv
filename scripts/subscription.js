@@ -13,7 +13,7 @@ class SubscriptionManager {
         this.stripe = Stripe(STRIPE_CONFIG.publishableKey);
     }
 
-    // Create checkout session via Back4App Cloud Function
+    // Redirect to Stripe Payment Link
     async createCheckoutSession() {
         try {
             const user = Parse.User.current();
@@ -21,25 +21,11 @@ class SubscriptionManager {
                 throw new Error('Must be logged in to subscribe');
             }
 
-            // Call Back4App Cloud Function to create Stripe checkout session
-            const result = await Parse.Cloud.run('createCheckoutSession', {
-                userId: user.id,
-                email: user.get('email'),
-                priceId: STRIPE_CONFIG.priceId
-            });
-
-            if (result.sessionId) {
-                // Redirect to Stripe Checkout
-                const { error } = await this.stripe.redirectToCheckout({
-                    sessionId: result.sessionId
-                });
-
-                if (error) {
-                    throw new Error(error.message);
-                }
-            } else {
-                throw new Error('Failed to create checkout session');
-            }
+            // Redirect directly to Stripe Payment Link with prefilled email
+            const email = user.get('email');
+            const paymentUrl = `${STRIPE_CONFIG.paymentLink}?prefilled_email=${encodeURIComponent(email)}&client_reference_id=${user.id}`;
+            
+            window.location.href = paymentUrl;
         } catch (error) {
             console.error('Checkout error:', error);
             throw error;
