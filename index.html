@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LatentLink - Cross-Domain Research Discovery</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     
     <!-- Parse SDK -->
@@ -14,6 +14,8 @@
     <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
+    <!-- Background Canvas for Dots Animation -->
+    <canvas id="dots-canvas"></canvas>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -263,9 +265,22 @@
     </div>
 
     <!-- Load scripts in order -->
+    <script src="scripts/dots.js"></script>
     <script src="scripts/back4app-config.js"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/subscription.js"></script>
     <script src="scripts/app.js"></script>
+    
+    <!-- Initialize dots animation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            draw_dots('dots-canvas', {
+                speed: 60,
+                dot_color: 'rgba(37, 99, 235, 0.8)',
+                line_color: 'rgba(37, 99, 235, 0.4)',
+                line_width: 1.5
+            });
+        });
+    </script>
 </body>
 </html>
