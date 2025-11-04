@@ -1015,41 +1015,36 @@ async function viewNotebook(notebookId) {
     try {
         const notebook = await notebookManager.loadNotebook(notebookId);
         
+        // Load notebook data into state
+        state.connections = notebook.analogies || [];
+        state.hypotheses = notebook.hypotheses || [];
+        
         // Switch to main app view
         showMainApp();
         
-        // Clear current results
-        document.getElementById('connections-container').innerHTML = '';
-        document.getElementById('hypotheses-container').innerHTML = '';
-        document.getElementById('patterns-container').innerHTML = '';
-        
         // Display notebook content
-        if (notebook.analogies.length > 0) {
+        if (state.connections.length > 0) {
             document.getElementById('discovery-section').style.display = 'block';
-            notebook.analogies.forEach(analogy => {
-                displayAnalogy(analogy);
-            });
+            displayConnections();
         }
         
-        if (notebook.hypotheses.length > 0) {
+        if (state.hypotheses.length > 0) {
             document.getElementById('hypotheses-section').style.display = 'block';
-            notebook.hypotheses.forEach(hypothesis => {
-                displayHypothesis(hypothesis);
-            });
+            displayHypotheses();
         }
         
-        if (notebook.patterns.length > 0) {
+        if (notebook.patterns && notebook.patterns.length > 0) {
             document.getElementById('patterns-section').style.display = 'block';
-            notebook.patterns.forEach(pattern => {
-                displayPattern(pattern);
-            });
+            displayPatterns(notebook.patterns);
         }
         
         document.getElementById('action-section').style.display = 'block';
+        updateStats();
         
         showToast(`📚 Loaded: ${notebook.title}`, 'success');
     } catch (error) {
         showToast(`Failed to load notebook: ${error.message}`, 'error');
+        console.error('Load notebook error:', error);
     } finally {
         hideLoading();
     }
