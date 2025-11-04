@@ -305,6 +305,7 @@ function setupEventListeners() {
     const generateHypothesesBtn = document.getElementById('generate-hypotheses-btn');
     const extractPatternsBtn = document.getElementById('extract-patterns-btn');
     const saveNotebookBtn = document.getElementById('save-notebook-btn');
+    const newNotebookBtn = document.getElementById('new-notebook-btn');
     const backToAppBtn = document.getElementById('back-to-app-btn');
     const papersSlider = document.getElementById('papers-per-domain');
     
@@ -313,6 +314,7 @@ function setupEventListeners() {
     if (generateHypothesesBtn) generateHypothesesBtn.addEventListener('click', generateHypotheses);
     if (extractPatternsBtn) extractPatternsBtn.addEventListener('click', extractPatterns);
     if (saveNotebookBtn) saveNotebookBtn.addEventListener('click', saveCurrentNotebook);
+    if (newNotebookBtn) newNotebookBtn.addEventListener('click', startNewNotebook);
     if (backToAppBtn) backToAppBtn.addEventListener('click', showMainApp);
     
     // Update papers count display when slider changes
@@ -1046,6 +1048,49 @@ function showUpgradeModal(message) {
 }
 
 // Notebook Management Functions
+async function startNewNotebook() {
+    // Check if user can create a new notebook (free tier limit)
+    const canCreate = await notebookManager.canCreateNotebook();
+    if (!canCreate.allowed) {
+        if (canCreate.reason === 'free_tier_limit') {
+            showUpgradeModal(canCreate.message);
+        } else {
+            showToast(canCreate.message || 'Cannot create notebook', 'error');
+        }
+        return;
+    }
+    
+    // Clear current state
+    state.domainPapers = {
+        domain1: [],
+        domain2: [],
+        domain3: []
+    };
+    state.connections = [];
+    state.hypotheses = [];
+    
+    // Hide result sections
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('discovery-section').style.display = 'none';
+    document.getElementById('hypotheses-section').style.display = 'none';
+    document.getElementById('patterns-section').style.display = 'none';
+    document.getElementById('action-section').style.display = 'none';
+    
+    // Clear containers
+    document.getElementById('papers-by-domain').innerHTML = '';
+    document.getElementById('connections-container').innerHTML = '';
+    document.getElementById('hypotheses-container').innerHTML = '';
+    document.getElementById('patterns-container').innerHTML = '';
+    
+    // Reset stats
+    updateStats();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    showToast('Ready to start a new notebook!', 'success');
+}
+
 async function saveCurrentNotebook() {
     if (!notebookManager.hasContent()) {
         showToast('No content to save. Generate some discoveries first!', 'warning');
