@@ -299,6 +299,7 @@ function setupEventListeners() {
     const extractPatternsBtn = document.getElementById('extract-patterns-btn');
     const saveNotebookBtn = document.getElementById('save-notebook-btn');
     const backToAppBtn = document.getElementById('back-to-app-btn');
+    const papersSlider = document.getElementById('papers-per-domain');
     
     if (discoverBtn) discoverBtn.addEventListener('click', discoverConnections);
     if (findAnalogiesBtn) findAnalogiesBtn.addEventListener('click', findDeepAnalogies);
@@ -306,6 +307,13 @@ function setupEventListeners() {
     if (extractPatternsBtn) extractPatternsBtn.addEventListener('click', extractPatterns);
     if (saveNotebookBtn) saveNotebookBtn.addEventListener('click', saveCurrentNotebook);
     if (backToAppBtn) backToAppBtn.addEventListener('click', showMainApp);
+    
+    // Update papers count display when slider changes
+    if (papersSlider) {
+        papersSlider.addEventListener('input', (e) => {
+            document.getElementById('papers-count').textContent = e.target.value;
+        });
+    }
 }
 
 // Cross-Domain Discovery
@@ -341,14 +349,7 @@ async function discoverConnections() {
     showLoading('Searching across domains...');
     
     try {
-        // Validate and cap papers per domain
-        let papersPerDomain = parseInt(document.getElementById('papers-per-domain').value);
-        if (isNaN(papersPerDomain) || papersPerDomain < 5) {
-            papersPerDomain = 5;
-        } else if (papersPerDomain > 15) {
-            papersPerDomain = 15;
-            showToast('Papers per domain capped at 15', 'info');
-        }
+        const papersPerDomain = document.getElementById('papers-per-domain').value;
         
         // Initialize new notebook session
         const domainInfo = searches.map(s => ({
