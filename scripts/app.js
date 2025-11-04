@@ -1027,8 +1027,11 @@ function showUpgradeModal(message) {
         document.getElementById('upgrade-now-btn').addEventListener('click', async () => {
             modal.style.display = 'none';
             try {
+                showLoading('Redirecting to checkout...');
                 await subscriptionManager.createCheckoutSession();
             } catch (error) {
+                hideLoading();
+                console.error('Checkout error:', error);
                 showToast('Failed to start checkout: ' + error.message, 'error');
             }
         });
