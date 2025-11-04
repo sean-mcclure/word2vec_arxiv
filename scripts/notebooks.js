@@ -12,7 +12,8 @@ class NotebookManager {
             createdAt: new Date(),
             analogiesGenerated: 0,
             hypothesesGenerated: 0,
-            patternsGenerated: 0
+            patternsGenerated: 0,
+            savedId: null // Track if this notebook has been saved
         };
     }
 
@@ -28,7 +29,8 @@ class NotebookManager {
             createdAt: new Date(),
             analogiesGenerated: 0,
             hypothesesGenerated: 0,
-            patternsGenerated: 0
+            patternsGenerated: 0,
+            savedId: null
         };
         
         // Increment unsaved notebook count in Back4App
@@ -77,6 +79,14 @@ class NotebookManager {
                 throw new Error('Must be logged in to save notebooks');
             }
 
+            // Check if this notebook has already been saved
+            if (this.currentNotebook.savedId) {
+                return {
+                    success: false,
+                    error: 'This notebook has already been saved'
+                };
+            }
+
             // Create Parse object
             const Notebook = Parse.Object.extend('Notebook');
             const notebook = new Notebook();
@@ -94,6 +104,9 @@ class NotebookManager {
             notebook.setACL(acl);
 
             await notebook.save();
+            
+            // Mark this notebook as saved
+            this.currentNotebook.savedId = notebook.id;
             
             // Decrement unsaved count since this notebook is now saved
             const unsavedCount = user.get('unsavedNotebooksCount') || 0;
