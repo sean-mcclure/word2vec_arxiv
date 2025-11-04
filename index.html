@@ -100,6 +100,20 @@
             </div>
         </div>
 
+        <!-- Notebooks View -->
+        <div id="notebooks-view" style="display: none;">
+            <section class="section">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>📚 My Notebooks</h2>
+                        <button id="back-to-app-btn" class="btn btn-secondary">← Back to Discovery</button>
+                    </div>
+                    <p class="hint">Your saved discovery sessions</p>
+                    <div id="notebooks-list" class="notebooks-list"></div>
+                </div>
+            </section>
+        </div>
+
         <!-- Main App (hidden until API key is set) -->
         <div id="main-app" style="display: none;">
             <!-- Cross-Domain Search Section -->
@@ -231,6 +245,7 @@
                         <button id="find-analogies-btn" class="btn btn-primary">🔗 Find Deep Analogies</button>
                         <button id="generate-hypotheses-btn" class="btn btn-secondary">💭 Generate Hypotheses</button>
                         <button id="extract-patterns-btn" class="btn btn-secondary">🧩 Extract Patterns</button>
+                        <button id="save-notebook-btn" class="btn btn-secondary">💾 Save Notebook</button>
                     </div>
                     <p class="hint-small" style="text-align: center; margin-top: 12px;">
                         Click "Find More Analogies" multiple times to discover different perspectives and connections
@@ -272,6 +287,7 @@
     <script src="scripts/app.js"></script>
     
     <!-- Initialize dots animation -->
+    <script src="scripts/notebooks.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             draw_dots('dots-canvas', {

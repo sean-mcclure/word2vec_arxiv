@@ -58,12 +58,14 @@ function showAuthSection() {
     document.getElementById('auth-section').style.display = 'block';
     document.getElementById('subscription-section').style.display = 'none';
     document.getElementById('main-app').style.display = 'none';
+    document.getElementById('notebooks-view').style.display = 'none';
 }
 
 function showSubscriptionRequired() {
     document.getElementById('auth-section').style.display = 'none';
     document.getElementById('subscription-section').style.display = 'block';
     document.getElementById('main-app').style.display = 'none';
+    document.getElementById('notebooks-view').style.display = 'none';
     updateUserMenu();
 }
 
@@ -71,7 +73,16 @@ function showMainApp() {
     document.getElementById('auth-section').style.display = 'none';
     document.getElementById('subscription-section').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
+    document.getElementById('notebooks-view').style.display = 'none';
     updateUserMenu();
+}
+
+function showNotebooksView() {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('subscription-section').style.display = 'none';
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('notebooks-view').style.display = 'block';
+    loadNotebooksList();
 }
 
 // Update user menu
@@ -96,6 +107,7 @@ function updateUserMenu() {
                         <div class="usage-bar-fill" id="usage-bar-fill"></div>
                     </div>
                 </div>
+                <div class="user-dropdown-item" id="view-notebooks">📚 My Notebooks</div>
                 <div class="user-dropdown-item" id="manage-subscription">Manage Subscription</div>
                 <div class="user-dropdown-item" id="logout-btn">Sign Out</div>
             </div>
@@ -105,6 +117,10 @@ function updateUserMenu() {
         // Add event listeners
         document.getElementById('user-menu-btn').addEventListener('click', () => {
             document.getElementById('user-dropdown').classList.toggle('show');
+        });
+        
+        document.getElementById('view-notebooks').addEventListener('click', () => {
+            showNotebooksView();
         });
         
         document.getElementById('manage-subscription').addEventListener('click', async () => {
@@ -271,11 +287,15 @@ function setupEventListeners() {
     const findAnalogiesBtn = document.getElementById('find-analogies-btn');
     const generateHypothesesBtn = document.getElementById('generate-hypotheses-btn');
     const extractPatternsBtn = document.getElementById('extract-patterns-btn');
+    const saveNotebookBtn = document.getElementById('save-notebook-btn');
+    const backToAppBtn = document.getElementById('back-to-app-btn');
     
     if (discoverBtn) discoverBtn.addEventListener('click', discoverConnections);
     if (findAnalogiesBtn) findAnalogiesBtn.addEventListener('click', findDeepAnalogies);
     if (generateHypothesesBtn) generateHypothesesBtn.addEventListener('click', generateHypotheses);
     if (extractPatternsBtn) extractPatternsBtn.addEventListener('click', extractPatterns);
+    if (saveNotebookBtn) saveNotebookBtn.addEventListener('click', saveCurrentNotebook);
+    if (backToAppBtn) backToAppBtn.addEventListener('click', showMainApp);
 }
 
 // Cross-Domain Discovery
@@ -301,6 +321,13 @@ async function discoverConnections() {
     
     try {
         const papersPerDomain = document.getElementById('papers-per-domain').value;
+        
+        // Initialize new notebook session
+        const domainInfo = searches.map(s => ({
+            area: s.category,
+            query: s.query
+        }));
+        notebookManager.startNewNotebook(domainInfo);
         
         // Search each domain
         for (const search of searches) {
@@ -480,6 +507,9 @@ Return JSON:
         
         state.connections = [...state.connections, ...newConnections];
         
+        // Track in notebook
+        notebookManager.addAnalogies(newConnections);
+        
         displayConnections();
         updateStats();
         hideLoading();
@@ -632,6 +662,9 @@ Return JSON:
         
         state.hypotheses = [...state.hypotheses, ...newHypotheses];
         
+        // Track in notebook
+        notebookManager.addHypotheses(newHypotheses);
+        
         displayHypotheses();
         updateStats();
         hideLoading();
@@ -748,6 +781,10 @@ Return JSON:
         ], 0.7);
         
         const result = parseJSONResponse(response);
+        
+        // Track in notebook
+        notebookManager.addPatterns(result.patterns);
+        
         displayPatterns(result.patterns);
         updateStats();
         hideLoading();
@@ -907,4 +944,127 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Notebook Management Functions
+async function saveCurrentNotebook() {
+    if (!notebookManager.hasContent()) {
+        showToast('No content to save. Generate some discoveries first!', 'warning');
+        return;
+    }
+
+    const result = await notebookManager.saveNotebook();
+    if (result.success) {
+        showToast('✅ Notebook saved successfully!', 'success');
+    } else {
+        showToast(`❌ Failed to save: ${result.error}`, 'error');
+    }
+}
+
+async function loadNotebooksList() {
+    const container = document.getElementById('notebooks-list');
+    container.innerHTML = '<div class="loading-text">Loading notebooks...</div>';
+
+    try {
+        const notebooks = await notebookManager.loadNotebooks();
+        
+        if (notebooks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📚 No notebooks yet</p>
+                    <p class="hint">Start discovering connections and save your first notebook!</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = notebooks.map(nb => `
+            <div class="notebook-card" data-id="${nb.id}">
+                <div class="notebook-header">
+                    <h3>${escapeHtml(nb.title)}</h3>
+                    <div class="notebook-actions">
+                        <button class="btn-icon view-notebook" data-id="${nb.id}" title="View">👁️</button>
+                        <button class="btn-icon delete-notebook" data-id="${nb.id}" title="Delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="notebook-meta">
+                    <span>📅 ${new Date(nb.createdAt).toLocaleDateString()}</span>
+                    <span>🔗 ${nb.analogies.length} analogies</span>
+                    <span>💭 ${nb.hypotheses.length} hypotheses</span>
+                    <span>🧩 ${nb.patterns.length} patterns</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        container.querySelectorAll('.view-notebook').forEach(btn => {
+            btn.addEventListener('click', () => viewNotebook(btn.dataset.id));
+        });
+
+        container.querySelectorAll('.delete-notebook').forEach(btn => {
+            btn.addEventListener('click', () => deleteNotebook(btn.dataset.id));
+        });
+    } catch (error) {
+        container.innerHTML = `<div class="error-message">Failed to load notebooks: ${error.message}</div>`;
+    }
+}
+
+async function viewNotebook(notebookId) {
+    showLoading('Loading notebook...');
+    
+    try {
+        const notebook = await notebookManager.loadNotebook(notebookId);
+        
+        // Switch to main app view
+        showMainApp();
+        
+        // Clear current results
+        document.getElementById('connections-container').innerHTML = '';
+        document.getElementById('hypotheses-container').innerHTML = '';
+        document.getElementById('patterns-container').innerHTML = '';
+        
+        // Display notebook content
+        if (notebook.analogies.length > 0) {
+            document.getElementById('discovery-section').style.display = 'block';
+            notebook.analogies.forEach(analogy => {
+                displayAnalogy(analogy);
+            });
+        }
+        
+        if (notebook.hypotheses.length > 0) {
+            document.getElementById('hypotheses-section').style.display = 'block';
+            notebook.hypotheses.forEach(hypothesis => {
+                displayHypothesis(hypothesis);
+            });
+        }
+        
+        if (notebook.patterns.length > 0) {
+            document.getElementById('patterns-section').style.display = 'block';
+            notebook.patterns.forEach(pattern => {
+                displayPattern(pattern);
+            });
+        }
+        
+        document.getElementById('action-section').style.display = 'block';
+        
+        showToast(`📚 Loaded: ${notebook.title}`, 'success');
+    } catch (error) {
+        showToast(`Failed to load notebook: ${error.message}`, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteNotebook(notebookId) {
+    if (!confirm('Are you sure you want to delete this notebook?')) {
+        return;
+    }
+
+    const result = await notebookManager.deleteNotebook(notebookId);
+    if (result.success) {
+        showToast('🗑️ Notebook deleted', 'success');
+        loadNotebooksList();
+    } else {
+        showToast(`Failed to delete: ${result.error}`, 'error');
+    }
 }
