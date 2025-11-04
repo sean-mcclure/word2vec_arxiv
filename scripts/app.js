@@ -341,7 +341,14 @@ async function discoverConnections() {
     showLoading('Searching across domains...');
     
     try {
-        const papersPerDomain = document.getElementById('papers-per-domain').value;
+        // Validate and cap papers per domain
+        let papersPerDomain = parseInt(document.getElementById('papers-per-domain').value);
+        if (isNaN(papersPerDomain) || papersPerDomain < 5) {
+            papersPerDomain = 5;
+        } else if (papersPerDomain > 15) {
+            papersPerDomain = 15;
+            showToast('Papers per domain capped at 15', 'info');
+        }
         
         // Initialize new notebook session
         const domainInfo = searches.map(s => ({
