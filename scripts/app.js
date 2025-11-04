@@ -31,10 +31,11 @@ async function initializeApp() {
     if (authManager.isAuthenticated()) {
         state.user = authManager.getCurrentUser();
         
-        // If returning from payment, refresh user data from server
+        // Always fetch fresh user data from server
+        await state.user.fetch();
+        
+        // If returning from payment, clear the success parameter from URL
         if (paymentSuccess === 'true') {
-            await state.user.fetch();
-            // Clear the success parameter from URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }
         
