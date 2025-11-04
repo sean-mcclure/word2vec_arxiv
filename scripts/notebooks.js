@@ -96,13 +96,10 @@ class NotebookManager {
             await notebook.save();
             
             // Decrement unsaved count since this notebook is now saved
-            const user = Parse.User.current();
-            if (user) {
-                const unsavedCount = user.get('unsavedNotebooksCount') || 0;
-                if (unsavedCount > 0) {
-                    user.set('unsavedNotebooksCount', unsavedCount - 1);
-                    await user.save(null, { useMasterKey: true });
-                }
+            const unsavedCount = user.get('unsavedNotebooksCount') || 0;
+            if (unsavedCount > 0) {
+                user.set('unsavedNotebooksCount', unsavedCount - 1);
+                await user.save(null, { useMasterKey: true });
             }
             
             return {
