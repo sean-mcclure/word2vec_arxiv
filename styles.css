@@ -118,6 +118,7 @@ body {
     font-weight: 600;
     color: var(--text-secondary);
     font-size: 0.9rem;
+    margin-top: 10px;
 }
 
 .input, .select {
