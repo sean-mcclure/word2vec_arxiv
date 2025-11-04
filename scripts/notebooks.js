@@ -14,6 +14,7 @@ class NotebookManager {
             hypothesesGenerated: 0,
             patternsGenerated: 0
         };
+        this.sessionNotebooksCreated = 0; // Track notebooks created this session
     }
 
     // Initialize a new notebook session
@@ -30,6 +31,7 @@ class NotebookManager {
             hypothesesGenerated: 0,
             patternsGenerated: 0
         };
+        this.sessionNotebooksCreated++; // Increment session counter
     }
 
     // Generate a title from domains
@@ -87,6 +89,11 @@ class NotebookManager {
             notebook.setACL(acl);
 
             await notebook.save();
+            
+            // Reset session counter since this notebook is now saved
+            if (this.sessionNotebooksCreated > 0) {
+                this.sessionNotebooksCreated--;
+            }
             
             return {
                 success: true,
@@ -232,9 +239,11 @@ class NotebookManager {
             return { allowed: true };
         }
 
-        // Free tier: 3 notebooks max
+        // Free tier: 3 notebooks max (saved + unsaved in this session)
         const notebooks = await this.loadNotebooks();
-        if (notebooks.length >= 3) {
+        const totalNotebooks = notebooks.length + this.sessionNotebooksCreated;
+        
+        if (totalNotebooks >= 3) {
             return { 
                 allowed: false, 
                 reason: 'free_tier_limit',
