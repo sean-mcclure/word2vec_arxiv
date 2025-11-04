@@ -14,11 +14,10 @@ class NotebookManager {
             hypothesesGenerated: 0,
             patternsGenerated: 0
         };
-        this.sessionNotebooksCreated = 0; // Track notebooks created this session
     }
 
     // Initialize a new notebook session
-    startNewNotebook(domains) {
+    async startNewNotebook(domains) {
         this.currentNotebook = {
             title: this.generateTitle(domains),
             domains: domains,
@@ -31,7 +30,13 @@ class NotebookManager {
             hypothesesGenerated: 0,
             patternsGenerated: 0
         };
-        this.sessionNotebooksCreated++; // Increment session counter
+        
+        // Increment unsaved notebook count in Back4App
+        const user = Parse.User.current();
+        if (user) {
+            user.increment('unsavedNotebooksCount');
+            await user.save(null, { useMasterKey: true });
+        }
     }
 
     // Generate a title from domains
@@ -90,9 +95,14 @@ class NotebookManager {
 
             await notebook.save();
             
-            // Reset session counter since this notebook is now saved
-            if (this.sessionNotebooksCreated > 0) {
-                this.sessionNotebooksCreated--;
+            // Decrement unsaved count since this notebook is now saved
+            const user = Parse.User.current();
+            if (user) {
+                const unsavedCount = user.get('unsavedNotebooksCount') || 0;
+                if (unsavedCount > 0) {
+                    user.set('unsavedNotebooksCount', unsavedCount - 1);
+                    await user.save(null, { useMasterKey: true });
+                }
             }
             
             return {
@@ -239,9 +249,10 @@ class NotebookManager {
             return { allowed: true };
         }
 
-        // Free tier: 3 notebooks max (saved + unsaved in this session)
+        // Free tier: 3 notebooks max (saved + unsaved)
         const notebooks = await this.loadNotebooks();
-        const totalNotebooks = notebooks.length + this.sessionNotebooksCreated;
+        const unsavedCount = user.get('unsavedNotebooksCount') || 0;
+        const totalNotebooks = notebooks.length + unsavedCount;
         
         if (totalNotebooks >= 3) {
             return { 

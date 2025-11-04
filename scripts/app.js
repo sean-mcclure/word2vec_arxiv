@@ -365,7 +365,7 @@ async function discoverConnections() {
             area: s.category,
             query: s.query
         }));
-        notebookManager.startNewNotebook(domainInfo);
+        await notebookManager.startNewNotebook(domainInfo);
         
         // Search each domain
         for (const search of searches) {
