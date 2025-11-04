@@ -29,12 +29,14 @@ class SubscriptionManager {
             });
 
             if (result.sessionId) {
+                console.log('Session ID:', result.sessionId);
                 // Redirect to Stripe Checkout
                 const { error } = await this.stripe.redirectToCheckout({
                     sessionId: result.sessionId
                 });
 
                 if (error) {
+                    console.error('Stripe redirect error:', error);
                     throw error;
                 }
             } else {
