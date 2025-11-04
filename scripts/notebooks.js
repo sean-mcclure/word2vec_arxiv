@@ -268,3 +268,4 @@ class NotebookManager {
 
 // Export singleton instance
 const notebookManager = new NotebookManager();
+console.log('NotebookManager initialized:', notebookManager);
