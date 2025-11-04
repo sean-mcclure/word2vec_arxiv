@@ -1,57 +1,49 @@
-# LatentLink
+# LatentLink Webhook Server
 
-**Discover deep connections across research domains**
+This is a standalone webhook server for handling Stripe subscription events for LatentLink.
 
-LatentLink is a cross-domain scientific discovery tool that helps researchers uncover surprising analogical connections between disparate fields. Using AI-powered semantic analysis, it identifies latent similarities in how different domains discuss concepts, mechanisms, and patterns—enabling novel insights that traditional keyword searches would miss.
+## Setup
 
-## What It Does
+1. **Update credentials in `index.js`**:
+   - Replace the placeholder Back4App credentials with your actual App ID, JavaScript Key, and Master Key
+   - The Stripe keys are already configured
 
-- **Cross-Domain Search**: Query 2-3 different research areas simultaneously (e.g., AI + Biology + Materials Science)
-- **Deep Analogical Reasoning**: Discover non-obvious structural and functional similarities across fields
-- **Hypothesis Generation**: Generate novel, testable research hypotheses based on cross-domain insights
-- **Pattern Extraction**: Identify universal principles that transcend specific domains
+2. **Add metadata to your Stripe product**:
+   - Go to Stripe Dashboard → Products → Your LatentLink product
+   - Add metadata: `app` = `latentlink`
+   - This tells the webhook which Back4App app to update
 
-## Inspiration
+3. **Deploy to Back4App Web Deployment**:
+   - Create a new Web Deployment in Back4App
+   - Connect this repository or upload these files
+   - Back4App will use the Dockerfile to build and deploy
 
-This application was inspired by the Nature [article](https://perssongroup.lbl.gov/papers/dagdelen-2019-word-embeddings.pdf) titled **Unsupervised word embeddings capture latent knowledge from materials science literature**, and the Medium article [Automating Analogy: Using AI to Help Researchers Make Discoveries](https://medium.com/data-science/automating-analogy-using-ai-to-help-researchers-make-discoveries-1ca04e9b620).
+4. **Update Stripe webhook URL**:
+   - Go to Stripe Dashboard → Webhooks
+   - Update the endpoint URL to your Back4App Web Deployment URL + `/webhook`
+   - Example: `https://your-deployment.back4app.io/webhook`
 
-## Technology
-
-- Pure vanilla JavaScript (no frameworks)
-- OpenAI GPT-4o for analogical reasoning
-- arXiv API for paper retrieval
-- Client-side only (no backend required)
-
-## Running the Application
-
-### Start web server
+## Testing Locally
 
 ```bash
-python3 -m http.server 8888 --directory app
+npm install
+node index.js
 ```
 
-### Open Browser
+Then use Stripe CLI to forward webhooks:
+```bash
+stripe listen --forward-to localhost:3000/webhook
+```
 
-Navigate to `http://localhost:8888/`
+## How It Works
 
-### Setup
-
-1. Enter your OpenAI API key (stored locally in browser)
-2. Select research domains and topics
-3. Click "Discover Connections" to find analogies
-
-## Features
-
-- **Find Deep Analogies**: Discover structural similarities between domains
-- **Generate Hypotheses**: Create testable research directions
-- **Extract Patterns**: Identify universal mechanisms across fields
-
-## Example Use Cases
-
-- Finding optimization techniques from finance applicable to molecular dynamics
-- Discovering biological mechanisms analogous to computational algorithms
-- Identifying phase transition patterns across physics, chemistry, and social systems
-
-## Support
-
-For questions or support, please reach out via GitHub issues or contact the project author. 
+1. Stripe sends `checkout.session.completed` event when a user subscribes
+2. Webhook verifies the Stripe signature
+3. Extracts customer email and subscription ID
+4. Reads product metadata to determine which app (latentlink)
+5. Finds the user in Back4App by email
+6. Updates user with:
+   - `stripeCustomerId`
+   - `stripeSubscriptionId`
+   - `subscriptionStatus: "active"`
+   - `usageCount: 0`
