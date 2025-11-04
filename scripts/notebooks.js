@@ -79,17 +79,19 @@ class NotebookManager {
                 throw new Error('Must be logged in to save notebooks');
             }
 
-            // Check if this notebook has already been saved
-            if (this.currentNotebook.savedId) {
-                return {
-                    success: false,
-                    error: 'This notebook has already been saved'
-                };
-            }
-
-            // Create Parse object
             const Notebook = Parse.Object.extend('Notebook');
-            const notebook = new Notebook();
+            let notebook;
+            let isUpdate = false;
+
+            // Check if this notebook has already been saved - if so, update it
+            if (this.currentNotebook.savedId) {
+                const query = new Parse.Query(Notebook);
+                notebook = await query.get(this.currentNotebook.savedId);
+                isUpdate = true;
+            } else {
+                // Create new notebook
+                notebook = new Notebook();
+            }
 
             notebook.set('title', customTitle || this.currentNotebook.title);
             notebook.set('domains', this.currentNotebook.domains);
@@ -97,28 +99,32 @@ class NotebookManager {
             notebook.set('analogies', this.currentNotebook.analogies);
             notebook.set('patterns', this.currentNotebook.patterns);
             notebook.set('hypotheses', this.currentNotebook.hypotheses);
-            notebook.set('user', user);
             
-            // Set ACL so only the user can read/write
-            const acl = new Parse.ACL(user);
-            notebook.setACL(acl);
+            // Only set user and ACL for new notebooks
+            if (!isUpdate) {
+                notebook.set('user', user);
+                const acl = new Parse.ACL(user);
+                notebook.setACL(acl);
+            }
 
             await notebook.save();
             
-            // Mark this notebook as saved
-            this.currentNotebook.savedId = notebook.id;
-            
-            // Decrement unsaved count since this notebook is now saved
-            const unsavedCount = user.get('unsavedNotebooksCount') || 0;
-            if (unsavedCount > 0) {
-                user.set('unsavedNotebooksCount', unsavedCount - 1);
-                await user.save(null, { useMasterKey: true });
+            // Mark this notebook as saved (for new notebooks)
+            if (!isUpdate) {
+                this.currentNotebook.savedId = notebook.id;
+                
+                // Decrement unsaved count since this notebook is now saved
+                const unsavedCount = user.get('unsavedNotebooksCount') || 0;
+                if (unsavedCount > 0) {
+                    user.set('unsavedNotebooksCount', unsavedCount - 1);
+                    await user.save(null, { useMasterKey: true });
+                }
             }
             
             return {
                 success: true,
                 notebookId: notebook.id,
-                message: 'Notebook saved successfully'
+                message: isUpdate ? 'Notebook updated successfully' : 'Notebook saved successfully'
             };
         } catch (error) {
             console.error('Save notebook error:', error);
