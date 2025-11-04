@@ -86,6 +86,9 @@ function updateUserMenu() {
     
     // Create user menu if it doesn't exist
     if (!document.getElementById('user-menu')) {
+        const subscriptionStatus = user.get('subscriptionStatus');
+        const isPremium = subscriptionStatus === 'active';
+        
         const menu = document.createElement('div');
         menu.id = 'user-menu';
         menu.className = 'user-menu';
@@ -102,7 +105,7 @@ function updateUserMenu() {
                     </div>
                 </div>
                 <div class="user-dropdown-item" id="view-notebooks">📚 My Notebooks</div>
-                <div class="user-dropdown-item" id="manage-subscription">Manage Subscription</div>
+                ${isPremium ? '<div class="user-dropdown-item" id="manage-subscription">Manage Subscription</div>' : ''}
                 <div class="user-dropdown-item" id="logout-btn">Sign Out</div>
             </div>
         `;
@@ -117,15 +120,19 @@ function updateUserMenu() {
             showNotebooksView();
         });
         
-        document.getElementById('manage-subscription').addEventListener('click', async () => {
-            try {
-                showLoading('Opening subscription portal...');
-                await subscriptionManager.createPortalSession();
-            } catch (error) {
-                hideLoading();
-                showToast('Failed to open portal: ' + error.message, 'error');
-            }
-        });
+        // Only add manage subscription listener if element exists (premium users only)
+        const manageSubBtn = document.getElementById('manage-subscription');
+        if (manageSubBtn) {
+            manageSubBtn.addEventListener('click', async () => {
+                try {
+                    showLoading('Opening subscription portal...');
+                    await subscriptionManager.createPortalSession();
+                } catch (error) {
+                    hideLoading();
+                    showToast('Failed to open portal: ' + error.message, 'error');
+                }
+            });
+        }
         
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await authManager.logOut();
