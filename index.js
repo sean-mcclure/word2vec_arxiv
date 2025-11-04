@@ -74,9 +74,14 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
         return res.status(404).send("User not found");
       }
 
+      // Get subscription details to set expiration date
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const expiresAt = new Date(subscription.current_period_end * 1000);
+
       user.set("stripeCustomerId", customerId);
       user.set("stripeSubscriptionId", subscriptionId);
       user.set("subscriptionStatus", "active");
+      user.set("subscriptionExpiresAt", expiresAt);
       user.set("usageCount", 0);
       await user.save(null, { useMasterKey: true });
 
