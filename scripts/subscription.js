@@ -13,7 +13,7 @@ class SubscriptionManager {
         this.stripe = Stripe(STRIPE_CONFIG.publishableKey);
     }
 
-    // Redirect to Stripe Payment Link
+    // Create Stripe Checkout Session
     async createCheckoutSession() {
         try {
             const user = Parse.User.current();
@@ -21,16 +21,25 @@ class SubscriptionManager {
                 throw new Error('Must be logged in to subscribe');
             }
 
-            // Store pending subscription status
-            user.set('pendingSubscription', true);
-            user.set('subscriptionInitiatedAt', new Date());
-            await user.save();
+            // Create checkout session via cloud function
+            const result = await Parse.Cloud.run('createCheckoutSession', {
+                userId: user.id,
+                email: user.get('email'),
+                priceId: STRIPE_CONFIG.priceId
+            });
 
-            // Redirect directly to Stripe Payment Link with prefilled email
-            const email = user.get('email');
-            const paymentUrl = `${STRIPE_CONFIG.paymentLink}?prefilled_email=${encodeURIComponent(email)}`;
-            
-            window.location.href = paymentUrl;
+            if (result.sessionId) {
+                // Redirect to Stripe Checkout
+                const { error } = await this.stripe.redirectToCheckout({
+                    sessionId: result.sessionId
+                });
+
+                if (error) {
+                    throw error;
+                }
+            } else {
+                throw new Error('Failed to create checkout session');
+            }
         } catch (error) {
             console.error('Checkout error:', error);
             throw error;
