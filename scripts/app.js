@@ -23,9 +23,20 @@ async function initializeApp() {
     // Initialize Stripe
     await subscriptionManager.initialize();
     
+    // Check if returning from successful payment
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get('success');
+    
     // Check if user is logged in
     if (authManager.isAuthenticated()) {
         state.user = authManager.getCurrentUser();
+        
+        // If returning from payment, refresh user data from server
+        if (paymentSuccess === 'true') {
+            await state.user.fetch();
+            // Clear the success parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
         
         // Check subscription status
         const subStatus = await authManager.checkSubscription();
