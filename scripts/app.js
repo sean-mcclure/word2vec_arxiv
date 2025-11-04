@@ -1183,7 +1183,8 @@ async function viewNotebook(notebookId) {
             // Set generation counts to 1 since this notebook was already generated
             analogiesGenerated: notebook.analogies && notebook.analogies.length > 0 ? 1 : 0,
             hypothesesGenerated: notebook.hypotheses && notebook.hypotheses.length > 0 ? 1 : 0,
-            patternsGenerated: notebook.patterns && notebook.patterns.length > 0 ? 1 : 0
+            patternsGenerated: notebook.patterns && notebook.patterns.length > 0 ? 1 : 0,
+            savedId: notebookId // Mark as already saved so re-saving updates instead of creating new
         };
         
         // Switch to main app view
