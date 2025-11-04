@@ -204,16 +204,8 @@ Parse.Cloud.define('callOpenAI', async (request) => {
 
         const data = await response.json();
         
-        // Increment usage count
-        user.increment('usageCount');
-        await user.save(null, { useMasterKey: true });
-        
         return {
-            content: data.choices[0].message.content,
-            usage: {
-                count: usageCount + 1,
-                limit: usageLimit
-            }
+            content: data.choices[0].message.content
         };
     } catch (error) {
         throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR, error.message);
