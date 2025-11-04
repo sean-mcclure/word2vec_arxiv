@@ -902,13 +902,6 @@ async function callOpenAI(messages, temperature = 0.7) {
     if (!subStatus.active) {
         throw new Error('Active subscription required');
     }
-    
-    // Check usage limits
-    const usageCheck = await authManager.checkUsageLimit();
-    if (!usageCheck.allowed) {
-        throw new Error(usageCheck.message);
-    }
-    
     try {
         // Call Back4App Cloud Function (which proxies to OpenAI with your API key)
         const result = await Parse.Cloud.run('callOpenAI', {
