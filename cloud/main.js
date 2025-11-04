@@ -25,11 +25,6 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             },
             phone_number_collection: {
                 enabled: false
-            },
-            payment_method_options: {
-                card: {
-                    setup_future_usage: 'off_session'
-                }
             }
         });
 
