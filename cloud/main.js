@@ -12,7 +12,7 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
         const session = await stripe.checkout.sessions.create({
             customer_email: email,
             client_reference_id: userId,
-            payment_method_types: ['card'],
+            payment_method_types: ['card', 'link'],
             line_items: [{
                 price: priceId,
                 quantity: 1,
@@ -23,9 +23,13 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             metadata: {
                 userId: userId
             },
-            // Don't collect phone number (reduces friction)
             phone_number_collection: {
                 enabled: false
+            },
+            payment_method_options: {
+                card: {
+                    setup_future_usage: 'off_session'
+                }
             }
         });
 
