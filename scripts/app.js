@@ -1044,6 +1044,8 @@ async function saveCurrentNotebook() {
     const result = await notebookManager.saveNotebook();
     if (result.success) {
         showToast('✅ Notebook saved successfully!', 'success');
+        // Update usage stats to reflect new notebook count
+        await updateUsageStats();
     } else {
         showToast(`❌ Failed to save: ${result.error}`, 'error');
     }
