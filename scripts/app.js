@@ -1223,7 +1223,9 @@ async function viewNotebook(notebookId) {
 }
 
 async function deleteNotebook(notebookId) {
-    if (!confirm('Are you sure you want to delete this notebook?')) {
+    // Use custom confirmation instead of browser confirm
+    const confirmed = await showConfirmDialog('Are you sure you want to delete this notebook?');
+    if (!confirmed) {
         return;
     }
 
@@ -1244,4 +1246,41 @@ async function deleteNotebook(notebookId) {
         console.error('Delete error:', error);
         showToast(`Failed to delete: ${error.message}`, 'error');
     }
+}
+
+// Custom confirm dialog
+function showConfirmDialog(message) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Confirm Delete</h3>
+                <p>${message}</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-danger" id="confirm-yes">Delete</button>
+                    <button class="btn btn-secondary" id="confirm-no">Cancel</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('confirm-yes').addEventListener('click', () => {
+            modal.remove();
+            resolve(true);
+        });
+        
+        document.getElementById('confirm-no').addEventListener('click', () => {
+            modal.remove();
+            resolve(false);
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                resolve(false);
+            }
+        });
+    });
 }
