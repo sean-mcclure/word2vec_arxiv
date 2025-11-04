@@ -942,6 +942,10 @@ function updateStats() {
     document.getElementById('connections-count').textContent = state.connections.length;
     document.getElementById('hypotheses-count').textContent = state.hypotheses.length;
     
+    // Count patterns from state
+    const patternsCount = document.querySelectorAll('#patterns-container .pattern-card').length;
+    document.getElementById('patterns-count').textContent = patternsCount;
+    
     // Update button text based on state
     const analogiesBtn = document.getElementById('find-analogies-btn');
     const hypothesesBtn = document.getElementById('generate-hypotheses-btn');
@@ -1108,6 +1112,21 @@ async function viewNotebook(notebookId) {
         // Load notebook data into state
         state.connections = notebook.analogies || [];
         state.hypotheses = notebook.hypotheses || [];
+        
+        // Restore the notebook to current session with generation counts
+        notebookManager.currentNotebook = {
+            title: notebook.title,
+            domains: notebook.domains,
+            connections: notebook.connections || [],
+            analogies: notebook.analogies || [],
+            patterns: notebook.patterns || [],
+            hypotheses: notebook.hypotheses || [],
+            createdAt: notebook.createdAt,
+            // Set generation counts to 1 since this notebook was already generated
+            analogiesGenerated: notebook.analogies && notebook.analogies.length > 0 ? 1 : 0,
+            hypothesesGenerated: notebook.hypotheses && notebook.hypotheses.length > 0 ? 1 : 0,
+            patternsGenerated: notebook.patterns && notebook.patterns.length > 0 ? 1 : 0
+        };
         
         // Switch to main app view
         showMainApp();
