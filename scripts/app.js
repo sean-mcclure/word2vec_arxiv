@@ -39,15 +39,9 @@ async function initializeApp() {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
         
-        // Check subscription status
-        const subStatus = await authManager.checkSubscription();
-        
-        if (subStatus.active) {
-            showMainApp();
-            updateUserMenu();
-        } else {
-            showSubscriptionRequired();
-        }
+        // All logged-in users can access the app (free tier or paid)
+        showMainApp();
+        updateUserMenu();
     } else {
         showAuthSection();
     }
@@ -153,12 +147,27 @@ function updateUserMenu() {
 // Update usage statistics
 async function updateUsageStats() {
     try {
-        const stats = await Parse.Cloud.run('getUsageStats');
-        const percentage = (stats.usageCount / stats.usageLimit) * 100;
+        const user = Parse.User.current();
+        if (!user) return;
         
-        document.getElementById('usage-text').textContent = 
-            `${stats.usageCount} / ${stats.usageLimit} discoveries used`;
-        document.getElementById('usage-bar-fill').style.width = `${percentage}%`;
+        await user.fetch();
+        const subscriptionStatus = user.get('subscriptionStatus');
+        const usageTextEl = document.getElementById('usage-text');
+        
+        if (subscriptionStatus === 'active') {
+            usageTextEl.textContent = '✨ Premium Member';
+            document.getElementById('usage-bar-fill').style.width = '100%';
+            document.getElementById('usage-bar-fill').style.background = 'linear-gradient(90deg, var(--secondary), var(--primary))';
+        } else {
+            // Free tier - show notebook count
+            const notebooks = await notebookManager.loadNotebooks();
+            const notebookCount = notebooks.length;
+            const percentage = (notebookCount / 3) * 100;
+            
+            usageTextEl.textContent = `Free Tier: ${notebookCount} / 3 notebooks`;
+            document.getElementById('usage-bar-fill').style.width = `${percentage}%`;
+            document.getElementById('usage-bar-fill').style.background = 'var(--primary)';
+        }
     } catch (error) {
         console.error('Error fetching usage stats:', error);
     }
@@ -182,13 +191,7 @@ function setupAuthListeners() {
         
         if (result.success) {
             state.user = result.user;
-            const subStatus = await authManager.checkSubscription();
-            
-            if (subStatus.active) {
-                showMainApp();
-            } else {
-                showSubscriptionRequired();
-            }
+            showMainApp();
         } else {
             showToast(result.error, 'error');
         }
@@ -216,7 +219,8 @@ function setupAuthListeners() {
         
         if (result.success) {
             state.user = result.user;
-            showSubscriptionRequired();
+            showMainApp();
+            showToast('🎉 Welcome! You have 3 free notebooks to get started.', 'success');
         } else {
             showToast(result.error, 'error');
         }
@@ -323,6 +327,17 @@ async function discoverConnections() {
         return;
     }
     
+    // Check if user can create a new notebook (free tier limit)
+    const canCreate = await notebookManager.canCreateNotebook();
+    if (!canCreate.allowed) {
+        if (canCreate.reason === 'free_tier_limit') {
+            showUpgradeModal(canCreate.message);
+        } else {
+            showToast(canCreate.message || 'Cannot create notebook', 'error');
+        }
+        return;
+    }
+    
     showLoading('Searching across domains...');
     
     try {
@@ -422,6 +437,17 @@ function displayPapersByDomain() {
 
 // Find Deep Analogies
 async function findDeepAnalogies() {
+    // Check if user can generate more (free tier limit)
+    const canGenerate = await notebookManager.canGenerateMore('analogies');
+    if (!canGenerate.allowed) {
+        if (canGenerate.reason === 'free_tier_limit') {
+            showUpgradeModal(canGenerate.message);
+        } else {
+            showToast(canGenerate.message || 'Cannot generate analogies', 'error');
+        }
+        return;
+    }
+    
     showLoading('Discovering deep analogical connections with AI...');
     
     try {
@@ -611,6 +637,17 @@ async function generateHypotheses() {
         return;
     }
     
+    // Check if user can generate more (free tier limit)
+    const canGenerate = await notebookManager.canGenerateMore('hypotheses');
+    if (!canGenerate.allowed) {
+        if (canGenerate.reason === 'free_tier_limit') {
+            showUpgradeModal(canGenerate.message);
+        } else {
+            showToast(canGenerate.message || 'Cannot generate hypotheses', 'error');
+        }
+        return;
+    }
+    
     showLoading('Generating research hypotheses...');
     
     try {
@@ -745,6 +782,17 @@ function displayHypotheses() {
 async function extractPatterns() {
     if (state.connections.length === 0) {
         showToast('Find analogies first', 'error');
+        return;
+    }
+    
+    // Check if user can generate more (free tier limit)
+    const canGenerate = await notebookManager.canGenerateMore('patterns');
+    if (!canGenerate.allowed) {
+        if (canGenerate.reason === 'free_tier_limit') {
+            showUpgradeModal(canGenerate.message);
+        } else {
+            showToast(canGenerate.message || 'Cannot extract patterns', 'error');
+        }
         return;
     }
     
@@ -950,6 +998,42 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Show upgrade modal for free tier limits
+function showUpgradeModal(message) {
+    const modal = document.getElementById('upgrade-modal');
+    const messageEl = document.getElementById('upgrade-message');
+    
+    if (message) {
+        messageEl.textContent = message;
+    }
+    
+    modal.style.display = 'flex';
+    
+    // Set up event listeners if not already set
+    if (!modal.dataset.listenersSet) {
+        document.getElementById('upgrade-now-btn').addEventListener('click', async () => {
+            modal.style.display = 'none';
+            try {
+                await subscriptionManager.createCheckoutSession();
+            } catch (error) {
+                showToast('Failed to start checkout: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('close-upgrade-modal').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        modal.dataset.listenersSet = 'true';
+    }
 }
 
 // Notebook Management Functions

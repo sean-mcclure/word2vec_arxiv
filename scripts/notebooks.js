@@ -9,7 +9,10 @@ class NotebookManager {
             analogies: [],
             patterns: [],
             hypotheses: [],
-            createdAt: new Date()
+            createdAt: new Date(),
+            analogiesGenerated: 0,
+            hypothesesGenerated: 0,
+            patternsGenerated: 0
         };
     }
 
@@ -22,7 +25,10 @@ class NotebookManager {
             analogies: [],
             patterns: [],
             hypotheses: [],
-            createdAt: new Date()
+            createdAt: new Date(),
+            analogiesGenerated: 0,
+            hypothesesGenerated: 0,
+            patternsGenerated: 0
         };
     }
 
@@ -41,16 +47,19 @@ class NotebookManager {
     // Add analogies to current notebook
     addAnalogies(analogies) {
         this.currentNotebook.analogies.push(...analogies);
+        this.currentNotebook.analogiesGenerated++;
     }
 
     // Add patterns to current notebook
     addPatterns(patterns) {
         this.currentNotebook.patterns.push(...patterns);
+        this.currentNotebook.patternsGenerated++;
     }
 
     // Add hypotheses to current notebook
     addHypotheses(hypotheses) {
         this.currentNotebook.hypotheses.push(...hypotheses);
+        this.currentNotebook.hypothesesGenerated++;
     }
 
     // Save current notebook to Back4App
@@ -182,6 +191,58 @@ class NotebookManager {
                this.currentNotebook.analogies.length > 0 ||
                this.currentNotebook.patterns.length > 0 ||
                this.currentNotebook.hypotheses.length > 0;
+    }
+
+    // Check if user can generate more (for free tier limits)
+    async canGenerateMore(type) {
+        const user = Parse.User.current();
+        if (!user) return { allowed: false, reason: 'Not logged in' };
+
+        await user.fetch();
+        const subscriptionStatus = user.get('subscriptionStatus');
+        
+        // Paid users have unlimited generations
+        if (subscriptionStatus === 'active') {
+            return { allowed: true };
+        }
+
+        // Free tier: 1 generation per type per notebook
+        const generationCount = this.currentNotebook[`${type}Generated`] || 0;
+        if (generationCount >= 1) {
+            return { 
+                allowed: false, 
+                reason: 'free_tier_limit',
+                message: `Free users can generate ${type} once per notebook. Subscribe for unlimited generations!`
+            };
+        }
+
+        return { allowed: true };
+    }
+
+    // Check if user can create more notebooks
+    async canCreateNotebook() {
+        const user = Parse.User.current();
+        if (!user) return { allowed: false, reason: 'Not logged in' };
+
+        await user.fetch();
+        const subscriptionStatus = user.get('subscriptionStatus');
+        
+        // Paid users have unlimited notebooks
+        if (subscriptionStatus === 'active') {
+            return { allowed: true };
+        }
+
+        // Free tier: 3 notebooks max
+        const notebooks = await this.loadNotebooks();
+        if (notebooks.length >= 3) {
+            return { 
+                allowed: false, 
+                reason: 'free_tier_limit',
+                message: 'Free users can create up to 3 notebooks. Subscribe for unlimited notebooks!'
+            };
+        }
+
+        return { allowed: true };
     }
 }
 
