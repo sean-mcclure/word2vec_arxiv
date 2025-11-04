@@ -124,7 +124,13 @@ function updateUserMenu() {
         });
         
         document.getElementById('manage-subscription').addEventListener('click', async () => {
-            await subscriptionManager.createPortalSession();
+            try {
+                showLoading('Opening subscription portal...');
+                await subscriptionManager.createPortalSession();
+            } catch (error) {
+                hideLoading();
+                showToast('Failed to open portal: ' + error.message, 'error');
+            }
         });
         
         document.getElementById('logout-btn').addEventListener('click', async () => {
