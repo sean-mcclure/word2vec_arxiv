@@ -442,7 +442,11 @@ function displayPapersByDomain() {
             const card = document.createElement('div');
             card.className = 'mini-paper-card';
             card.innerHTML = `
-                <div class="paper-title">${escapeHtml(paper.title)}</div>
+                <div class="paper-title">
+                    <a href="${paper.link}" target="_blank" rel="noopener noreferrer" class="paper-link">
+                        ${escapeHtml(paper.title)}
+                    </a>
+                </div>
                 <div class="paper-authors">${paper.authors.slice(0, 2).join(', ')}${paper.authors.length > 2 ? ' et al.' : ''}</div>
             `;
             papersList.appendChild(card);
@@ -1223,11 +1227,21 @@ async function deleteNotebook(notebookId) {
         return;
     }
 
-    const result = await notebookManager.deleteNotebook(notebookId);
-    if (result.success) {
-        showToast('🗑️ Notebook deleted', 'success');
-        loadNotebooksList();
-    } else {
-        showToast(`Failed to delete: ${result.error}`, 'error');
+    try {
+        showLoading('Deleting notebook...');
+        const result = await notebookManager.deleteNotebook(notebookId);
+        hideLoading();
+        
+        if (result.success) {
+            showToast('🗑️ Notebook deleted', 'success');
+            await updateUsageStats(); // Update the notebook count
+            loadNotebooksList();
+        } else {
+            showToast(`Failed to delete: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Delete error:', error);
+        showToast(`Failed to delete: ${error.message}`, 'error');
     }
 }
