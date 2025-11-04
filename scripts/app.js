@@ -1027,8 +1027,11 @@ function showUpgradeModal(message) {
         document.getElementById('upgrade-now-btn').addEventListener('click', async () => {
             modal.style.display = 'none';
             try {
-                showLoading('Redirecting to checkout...');
+                showLoading('Opening checkout...');
                 await subscriptionManager.createCheckoutSession();
+                // Hide loading after opening new tab
+                hideLoading();
+                showToast('Checkout opened in new tab. Complete payment there to upgrade.', 'info');
             } catch (error) {
                 hideLoading();
                 console.error('Checkout error:', error);

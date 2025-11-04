@@ -28,23 +28,13 @@ class SubscriptionManager {
                 priceId: STRIPE_CONFIG.priceId
             });
 
-            if (result.sessionId) {
-                console.log('Session ID:', result.sessionId);
-                
-                // Get the checkout URL from Stripe
-                const checkoutUrl = `https://checkout.stripe.com/c/pay/${result.sessionId}`;
-                
-                // Open in new tab
-                const newWindow = window.open(checkoutUrl, '_blank');
+            if (result.url) {
+                // Open Stripe checkout in new tab
+                const newWindow = window.open(result.url, '_blank');
                 
                 if (!newWindow) {
                     // Popup blocked, fallback to same tab redirect
-                    const { error } = await this.stripe.redirectToCheckout({
-                        sessionId: result.sessionId
-                    });
-                    if (error) {
-                        throw error;
-                    }
+                    window.location.href = result.url;
                 }
             } else {
                 throw new Error('Failed to create checkout session');

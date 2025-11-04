@@ -28,7 +28,10 @@ Parse.Cloud.define('createCheckoutSession', async (request) => {
             }
         });
 
-        return { sessionId: session.id };
+        return { 
+            sessionId: session.id,
+            url: session.url 
+        };
     } catch (error) {
         throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR, error.message);
     }
