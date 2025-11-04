@@ -182,20 +182,7 @@ Parse.Cloud.define('callOpenAI', async (request) => {
         throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Must be logged in');
     }
 
-    // Check subscription status
-    const subscriptionStatus = user.get('subscriptionStatus');
-    if (subscriptionStatus !== 'active') {
-        throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN, 'Active subscription required');
-    }
-
-    // Check usage limits
-    const usageCount = user.get('usageCount') || 0;
-    const usageLimit = user.get('usageLimit') || 100;
-    
-    if (usageCount >= usageLimit) {
-        throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN, 'Monthly usage limit reached');
-    }
-
+    // Free tier users can use the API (limits enforced by notebook system in frontend)
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
