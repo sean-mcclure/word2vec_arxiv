@@ -548,7 +548,9 @@ Return JSON:
         state.connections = [...state.connections, ...newConnections];
         
         // Track in notebook
+        console.log('Adding analogies to notebook:', newConnections.length);
         notebookManager.addAnalogies(newConnections);
+        console.log('Current notebook state:', notebookManager.getCurrentNotebook());
         
         displayConnections();
         updateStats();
