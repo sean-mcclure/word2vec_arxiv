@@ -219,8 +219,7 @@ Parse.Cloud.define('getUsageStats', async (request) => {
         throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Must be logged in');
     }
 
-    await user.fetch({ useMasterKey: true });
-    
+    // No Master Key needed - user can read their own properties
     return {
         usageCount: user.get('usageCount') || 0,
         usageLimit: user.get('usageLimit') || 100,

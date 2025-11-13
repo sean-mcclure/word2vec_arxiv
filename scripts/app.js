@@ -169,8 +169,8 @@ async function updateUsageStats() {
         const user = Parse.User.current();
         if (!user) return;
         
-        await user.fetch();
-        const subscriptionStatus = user.get('subscriptionStatus');
+        // Don't fetch user data - just use what's already available
+        const subscriptionStatus = user.get('subscriptionStatus') || 'inactive';
         const usageTextEl = document.getElementById('usage-text');
         
         if (subscriptionStatus === 'active') {
@@ -179,8 +179,8 @@ async function updateUsageStats() {
             document.getElementById('usage-bar-fill').style.background = 'linear-gradient(90deg, var(--secondary), var(--primary))';
         } else {
             // Free tier - show notebook count
-            const notebooks = await notebookManager.loadNotebooks();
-            const notebookCount = notebooks.length;
+            const notebookResult = await notebookManager.loadNotebooks();
+            const notebookCount = notebookResult.success ? notebookResult.count : 0;
             const percentage = (notebookCount / 3) * 100;
             
             usageTextEl.textContent = `Free Tier: ${notebookCount} / 3 notebooks`;
