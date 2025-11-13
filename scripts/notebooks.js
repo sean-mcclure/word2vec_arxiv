@@ -67,7 +67,7 @@ class NotebookManager {
         this.currentNotebook.hypothesesGenerated++;
     }
 
-    // Save current notebook to Back4App
+    // Save current notebook to Back4App (simplified approach)
     async saveNotebook(customTitle = null) {
         try {
             const user = Parse.User.current();
@@ -85,12 +85,6 @@ class NotebookManager {
                 notebook = await query.get(this.currentNotebook.savedId);
                 isUpdate = true;
             } else {
-                // Check notebook limits for new notebooks only
-                const canCreate = await this.canCreateNotebook();
-                if (!canCreate.allowed) {
-                    throw new Error(canCreate.message || 'Cannot create more notebooks');
-                }
-                
                 // Create new notebook
                 notebook = new Notebook();
             }
@@ -102,11 +96,9 @@ class NotebookManager {
             notebook.set('patterns', this.currentNotebook.patterns);
             notebook.set('hypotheses', this.currentNotebook.hypotheses);
             
-            // Only set user and ACL for new notebooks
+            // Only set user for new notebooks (no ACL needed with public permissions)
             if (!isUpdate) {
                 notebook.set('user', user);
-                const acl = new Parse.ACL(user);
-                notebook.setACL(acl);
             }
 
             await notebook.save();
@@ -114,8 +106,6 @@ class NotebookManager {
             // Mark this notebook as saved (for new notebooks)
             if (!isUpdate) {
                 this.currentNotebook.savedId = notebook.id;
-                
-                // No need to track unsaved notebooks - we just count actual saved notebooks
             }
             
             return {
@@ -132,64 +122,62 @@ class NotebookManager {
         }
     }
 
-    // Load all notebooks for current user
+    // Load notebooks from Back4App (simplified approach)
     async loadNotebooks() {
         try {
             const user = Parse.User.current();
             if (!user) {
-                throw new Error('Must be logged in to view notebooks');
+                this.savedNotebooks = [];
+                this.renderSavedNotebooks();
+                return { success: true, count: 0 };
             }
 
             const Notebook = Parse.Object.extend('Notebook');
             const query = new Parse.Query(Notebook);
             query.equalTo('user', user);
-            query.descending('createdAt');
-            query.limit(100);
+            query.descending('updatedAt');
 
             const notebooks = await query.find();
             
-            return notebooks.map(nb => ({
-                id: nb.id,
-                title: nb.get('title'),
-                domains: nb.get('domains'),
-                connections: nb.get('connections') || [],
-                analogies: nb.get('analogies') || [],
-                patterns: nb.get('patterns') || [],
-                hypotheses: nb.get('hypotheses') || [],
-                createdAt: nb.get('createdAt'),
-                updatedAt: nb.get('updatedAt')
-            }));
-        } catch (error) {
-            console.error('Load notebooks error:', error);
-            throw error;
-        }
-    }
-
-    // Load a specific notebook
-    async loadNotebook(notebookId) {
-        try {
-            const Notebook = Parse.Object.extend('Notebook');
-            const query = new Parse.Query(Notebook);
-            const notebook = await query.get(notebookId);
-
-            return {
+            this.savedNotebooks = notebooks.map(notebook => ({
                 id: notebook.id,
                 title: notebook.get('title'),
-                domains: notebook.get('domains'),
+                domains: notebook.get('domains') || [],
                 connections: notebook.get('connections') || [],
                 analogies: notebook.get('analogies') || [],
                 patterns: notebook.get('patterns') || [],
                 hypotheses: notebook.get('hypotheses') || [],
                 createdAt: notebook.get('createdAt'),
                 updatedAt: notebook.get('updatedAt')
-            };
+            }));
+
+            this.renderSavedNotebooks();
+            return { success: true, count: this.savedNotebooks.length };
+        } catch (error) {
+            console.error('Load notebooks error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Load a specific notebook
+    async loadNotebook(notebookId) {
+        try {
+            // For now, load all notebooks and filter - we can optimize this later
+            const notebooks = await this.loadNotebooks();
+            const notebook = notebooks.find(nb => nb.id === notebookId);
+            
+            if (!notebook) {
+                throw new Error('Notebook not found');
+            }
+            
+            return notebook;
         } catch (error) {
             console.error('Load notebook error:', error);
             throw error;
         }
     }
 
-    // Delete a notebook
+        // Delete a notebook (simplified approach)
     async deleteNotebook(notebookId) {
         try {
             const Notebook = Parse.Object.extend('Notebook');
@@ -197,16 +185,13 @@ class NotebookManager {
             const notebook = await query.get(notebookId);
             await notebook.destroy();
             
-            return {
-                success: true,
-                message: 'Notebook deleted successfully'
-            };
+            // Remove from local array
+            this.savedNotebooks = this.savedNotebooks.filter(n => n.id !== notebookId);
+            this.renderSavedNotebooks();
+            return { success: true, message: 'Notebook deleted successfully' };
         } catch (error) {
             console.error('Delete notebook error:', error);
-            return {
-                success: false,
-                error: error.message
-            };
+            return { success: false, error: error.message };
         }
     }
 
@@ -249,31 +234,40 @@ class NotebookManager {
         return { allowed: true };
     }
 
-    // Check if user can create more notebooks
+    // Check if user can create a new notebook (simplified client-side check)
     async canCreateNotebook() {
-        const user = Parse.User.current();
-        if (!user) return { allowed: false, reason: 'Not logged in' };
+        try {
+            const user = Parse.User.current();
+            if (!user) {
+                return { canCreate: false, reason: 'Must be logged in' };
+            }
 
-        await user.fetch();
-        const subscriptionStatus = user.get('subscriptionStatus');
-        
-        // Paid users have unlimited notebooks
-        if (subscriptionStatus === 'active') {
-            return { allowed: true };
-        }
+            // Check if user has premium status
+            const isPremium = user.get('isPremium') || false;
+            
+            if (isPremium) {
+                return { canCreate: true, reason: 'Premium user - unlimited notebooks' };
+            }
 
-        // Free tier: 3 notebooks max (check actual saved notebooks only)
-        const notebooks = await this.loadNotebooks();
-        
-        if (notebooks.length >= 3) {
+            // For free users, count their existing notebooks
+            const notebookCount = this.savedNotebooks.length;
+            const FREE_LIMIT = 3;
+
+            if (notebookCount >= FREE_LIMIT) {
+                return { 
+                    canCreate: false, 
+                    reason: `Free users are limited to ${FREE_LIMIT} notebooks. Upgrade to premium for unlimited notebooks.` 
+                };
+            }
+
             return { 
-                allowed: false, 
-                reason: 'free_tier_limit',
-                message: 'Free users can create up to 3 notebooks. Subscribe for unlimited notebooks!'
+                canCreate: true, 
+                reason: `Free user - ${notebookCount}/${FREE_LIMIT} notebooks used` 
             };
+        } catch (error) {
+            console.error('Error checking notebook limit:', error);
+            return { canCreate: true, reason: 'Unable to check limit, allowing creation' };
         }
-
-        return { allowed: true };
     }
 }
 
