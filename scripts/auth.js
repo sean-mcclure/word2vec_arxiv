@@ -105,24 +105,6 @@ class AuthManager {
         };
     }
 
-    // Increment usage count
-    async incrementUsage() {
-        if (!this.isAuthenticated()) {
-            return { success: false };
-        }
-
-        try {
-            const user = this.getCurrentUser();
-            await user.fetch();
-            const currentCount = user.get('usageCount') || 0;
-            user.set('usageCount', currentCount + 1);
-            await user.save();
-            return { success: true, count: currentCount + 1 };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
     // Reset password
     async resetPassword(email) {
         try {

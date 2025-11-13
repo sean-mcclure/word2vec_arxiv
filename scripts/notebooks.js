@@ -33,12 +33,8 @@ class NotebookManager {
             savedId: null
         };
         
-        // Increment unsaved notebook count in Back4App
-        const user = Parse.User.current();
-        if (user) {
-            user.increment('unsavedNotebooksCount');
-            await user.save(null, { useMasterKey: true });
-        }
+        // Note: We'll check notebook limits when saving, not when starting
+        // This eliminates the need for Master Key operations
     }
 
     // Generate a title from domains
@@ -89,6 +85,12 @@ class NotebookManager {
                 notebook = await query.get(this.currentNotebook.savedId);
                 isUpdate = true;
             } else {
+                // Check notebook limits for new notebooks only
+                const canCreate = await this.canCreateNotebook();
+                if (!canCreate.allowed) {
+                    throw new Error(canCreate.message || 'Cannot create more notebooks');
+                }
+                
                 // Create new notebook
                 notebook = new Notebook();
             }
@@ -113,12 +115,7 @@ class NotebookManager {
             if (!isUpdate) {
                 this.currentNotebook.savedId = notebook.id;
                 
-                // Decrement unsaved count since this notebook is now saved
-                const unsavedCount = user.get('unsavedNotebooksCount') || 0;
-                if (unsavedCount > 0) {
-                    user.set('unsavedNotebooksCount', unsavedCount - 1);
-                    await user.save(null, { useMasterKey: true });
-                }
+                // No need to track unsaved notebooks - we just count actual saved notebooks
             }
             
             return {
@@ -265,12 +262,10 @@ class NotebookManager {
             return { allowed: true };
         }
 
-        // Free tier: 3 notebooks max (saved + unsaved)
+        // Free tier: 3 notebooks max (check actual saved notebooks only)
         const notebooks = await this.loadNotebooks();
-        const unsavedCount = user.get('unsavedNotebooksCount') || 0;
-        const totalNotebooks = notebooks.length + unsavedCount;
         
-        if (totalNotebooks >= 3) {
+        if (notebooks.length >= 3) {
             return { 
                 allowed: false, 
                 reason: 'free_tier_limit',

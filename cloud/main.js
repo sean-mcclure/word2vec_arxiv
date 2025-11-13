@@ -113,6 +113,7 @@ Parse.Cloud.define('handleStripeWebhook', async (request) => {
                 if (subscription.current_period_end) {
                     user.set('subscriptionExpiresAt', new Date(subscription.current_period_end * 1000));
                 }
+
                 await user.save(null, { useMasterKey: true });
             }
             break;
@@ -226,4 +227,62 @@ Parse.Cloud.define('getUsageStats', async (request) => {
         subscriptionStatus: user.get('subscriptionStatus'),
         subscriptionExpiresAt: user.get('subscriptionExpiresAt')
     };
+});
+
+
+
+// Proxy ArXiv API calls (bypass CORS)
+Parse.Cloud.define('searchArxiv', async (request) => {
+    const { category, query, maxResults } = request.params;
+    const user = request.user;
+    
+    console.log('ArXiv search request:', { category, query, maxResults });
+    
+    if (!user) {
+        throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Must be logged in');
+    }
+    
+    try {
+        const searchQuery = `cat:${category} AND all:${query}`;
+        const url = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(searchQuery)}&start=0&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
+        
+        console.log('Fetching from ArXiv:', url);
+        
+        // Add timeout and better error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'LatentLink/1.0 (Research Discovery Tool)'
+            }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log('ArXiv response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`ArXiv API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const xmlText = await response.text();
+        
+        console.log('ArXiv response received, length:', xmlText.length);
+        
+        return {
+            success: true,
+            data: xmlText
+        };
+    } catch (error) {
+        console.error('ArXiv search error:', error);
+        
+        // Return error details for debugging
+        return {
+            success: false,
+            error: error.message,
+            errorType: error.name
+        };
+    }
 });

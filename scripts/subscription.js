@@ -10,6 +10,9 @@ class SubscriptionManager {
         if (!window.Stripe) {
             throw new Error('Stripe.js not loaded');
         }
+        if (typeof STRIPE_CONFIG === 'undefined') {
+            throw new Error('STRIPE_CONFIG not defined. Make sure back4app-config.js is loaded first.');
+        }
         this.stripe = Stripe(STRIPE_CONFIG.publishableKey);
     }
 

@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' https://fonts.gstatic.com https://m.stripe.network data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://npmcdn.com https://unpkg.com; connect-src 'self' https://parseapi.back4app.com https://api.openai.com https://export.arxiv.org; img-src 'self' data:">
     <title>LatentLink - Cross-Domain Research Discovery</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     
     <!-- Parse SDK -->
-    <script src="https://npmcdn.com/parse@3.4.4/dist/parse.min.js"></script>
+    <script src="https://unpkg.com/parse@3.4.4/dist/parse.min.js"></script>
     
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -359,7 +360,6 @@
                         <button id="find-analogies-btn" class="btn btn-primary">🔗 Find Deep Analogies</button>
                         <button id="generate-hypotheses-btn" class="btn btn-secondary">💭 Generate Hypotheses</button>
                         <button id="extract-patterns-btn" class="btn btn-secondary">🧩 Extract Patterns</button>
-                        <button id="save-notebook-btn" class="btn btn-secondary">💾 Save Notebook</button>
                         <button id="new-notebook-btn" class="btn btn-secondary">📝 New Notebook</button>
                     </div>
                     <p class="hint-small" style="text-align: center; margin-top: 12px;">

@@ -8,9 +8,27 @@ const BACK4APP_CONFIG = {
     serverURL: 'https://parseapi.back4app.com'
 };
 
-// Initialize Parse
-Parse.initialize(BACK4APP_CONFIG.applicationId, BACK4APP_CONFIG.javascriptKey);
-Parse.serverURL = BACK4APP_CONFIG.serverURL;
+// Initialize Parse when document is ready
+function initializeParse() {
+    if (typeof Parse !== 'undefined') {
+        Parse.initialize(BACK4APP_CONFIG.applicationId, BACK4APP_CONFIG.javascriptKey);
+        Parse.serverURL = BACK4APP_CONFIG.serverURL;
+        console.log('Parse SDK initialized successfully');
+        return true;
+    } else {
+        console.error('Parse SDK not loaded. Make sure the Parse script is loaded before this file.');
+        return false;
+    }
+}
+
+// Try to initialize immediately
+if (document.readyState === 'loading') {
+    // If still loading, wait for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', initializeParse);
+} else {
+    // If already loaded, initialize now
+    initializeParse();
+}
 
 // Stripe Configuration
 const STRIPE_CONFIG = {

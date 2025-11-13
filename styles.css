@@ -442,6 +442,10 @@ body {
     border-left-color: var(--secondary);
 }
 
+.toast.warning {
+    border-left-color: var(--warning);
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(400px);

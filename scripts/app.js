@@ -20,8 +20,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Initialize application
 async function initializeApp() {
+    // Wait for Parse to be ready
+    if (typeof Parse === 'undefined') {
+        console.error('Parse SDK not available');
+        showToast('Application loading error. Please refresh the page.', 'error');
+        return;
+    }
+    
     // Initialize Stripe
-    await subscriptionManager.initialize();
+    try {
+        await subscriptionManager.initialize();
+    } catch (error) {
+        console.error('Stripe initialization error:', error);
+        showToast('Payment system unavailable: ' + error.message, 'error');
+    }
     
     // Check if returning from successful payment
     const urlParams = new URLSearchParams(window.location.search);
@@ -304,7 +316,6 @@ function setupEventListeners() {
     const findAnalogiesBtn = document.getElementById('find-analogies-btn');
     const generateHypothesesBtn = document.getElementById('generate-hypotheses-btn');
     const extractPatternsBtn = document.getElementById('extract-patterns-btn');
-    const saveNotebookBtn = document.getElementById('save-notebook-btn');
     const newNotebookBtn = document.getElementById('new-notebook-btn');
     const backToAppBtn = document.getElementById('back-to-app-btn');
     const papersSlider = document.getElementById('papers-per-domain');
@@ -313,7 +324,6 @@ function setupEventListeners() {
     if (findAnalogiesBtn) findAnalogiesBtn.addEventListener('click', findDeepAnalogies);
     if (generateHypothesesBtn) generateHypothesesBtn.addEventListener('click', generateHypotheses);
     if (extractPatternsBtn) extractPatternsBtn.addEventListener('click', extractPatterns);
-    if (saveNotebookBtn) saveNotebookBtn.addEventListener('click', saveCurrentNotebook);
     if (newNotebookBtn) newNotebookBtn.addEventListener('click', startNewNotebook);
     if (backToAppBtn) backToAppBtn.addEventListener('click', showMainApp);
     
@@ -396,26 +406,109 @@ async function discoverConnections() {
     }
 }
 
-// Search arXiv
+// Search arXiv with fallback approaches
 async function searchArxiv(category, query, maxResults) {
-    const searchQuery = `cat:${category} AND all:${query}`;
-    const url = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(searchQuery)}&start=0&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
+    // First try the Cloud Function approach
+    try {
+        const result = await Parse.Cloud.run('searchArxiv', {
+            category: category,
+            query: query,
+            maxResults: maxResults
+        });
+        
+        if (result && result.success && result.data) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(result.data, 'text/xml');
+            const entries = xmlDoc.querySelectorAll('entry');
+            
+            if (entries.length > 0) {
+                return Array.from(entries).map(entry => ({
+                    id: entry.querySelector('id').textContent,
+                    title: entry.querySelector('title').textContent.trim(),
+                    authors: Array.from(entry.querySelectorAll('author name')).map(a => a.textContent),
+                    abstract: entry.querySelector('summary').textContent.trim(),
+                    published: entry.querySelector('published').textContent,
+                    link: entry.querySelector('id').textContent
+                }));
+            }
+        } else if (result && result.error) {
+            console.warn('Cloud Function returned error:', result.error);
+        }
+    } catch (error) {
+        console.warn('Cloud Function approach failed:', error.message);
+    }
     
-    const response = await fetch(url);
-    const xmlText = await response.text();
+    // Fallback: try direct fetch (might work in some browsers/environments)
+    try {
+        console.log('Trying direct ArXiv access...');
+        const searchQuery = `cat:${category} AND all:${query}`;
+        const url = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(searchQuery)}&start=0&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/atom+xml',
+            }
+        });
+        
+        if (response.ok) {
+            const xmlText = await response.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            const entries = xmlDoc.querySelectorAll('entry');
+            
+            return Array.from(entries).map(entry => ({
+                id: entry.querySelector('id').textContent,
+                title: entry.querySelector('title').textContent.trim(),
+                authors: Array.from(entry.querySelectorAll('author name')).map(a => a.textContent),
+                abstract: entry.querySelector('summary').textContent.trim(),
+                published: entry.querySelector('published').textContent,
+                link: entry.querySelector('id').textContent
+            }));
+        }
+    } catch (error) {
+        console.warn('Direct fetch failed:', error.message);
+    }
     
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    const entries = xmlDoc.querySelectorAll('entry');
+    // Final fallback: return mock data for demonstration
+    console.warn('Using mock data for ArXiv search');
+    showToast('⚠️ Using demo data - ArXiv temporarily unavailable', 'warning');
+    return generateMockPapers(category, query, maxResults);
+}
+
+// Generate mock papers as fallback when ArXiv is not accessible
+function generateMockPapers(category, query, maxResults) {
+    const mockPapers = [];
+    const categoryMap = {
+        'cs.AI': 'Artificial Intelligence',
+        'cs.LG': 'Machine Learning',
+        'cs.CV': 'Computer Vision',
+        'cs.CL': 'Natural Language Processing',
+        'cs.RO': 'Robotics',
+        'physics.bio-ph': 'Biological Physics',
+        'q-bio.NC': 'Neuroscience',
+        'math.DS': 'Dynamical Systems'
+    };
     
-    return Array.from(entries).map(entry => ({
-        id: entry.querySelector('id').textContent,
-        title: entry.querySelector('title').textContent.trim(),
-        authors: Array.from(entry.querySelectorAll('author name')).map(a => a.textContent),
-        abstract: entry.querySelector('summary').textContent.trim(),
-        published: entry.querySelector('published').textContent,
-        link: entry.querySelector('id').textContent
-    }));
+    const domainName = categoryMap[category] || category;
+    
+    for (let i = 0; i < Math.min(maxResults, 8); i++) {
+        mockPapers.push({
+            id: `https://arxiv.org/abs/2024.${String(i + 1).padStart(4, '0')}`,
+            title: `${domainName} Research on ${query}: A Comprehensive Study ${i + 1}`,
+            authors: [
+                `Dr. Alex Smith${i}`,
+                `Prof. Maria Johnson${i}`,
+                `Dr. Robert Chen${i}`
+            ],
+            abstract: `This paper presents novel approaches in ${domainName.toLowerCase()} with specific focus on ${query}. Our methodology combines theoretical frameworks with empirical validation to demonstrate significant improvements over existing methods. The research contributes to understanding the fundamental principles underlying ${query} in the context of ${domainName.toLowerCase()}. Key findings include enhanced performance metrics and novel theoretical insights that advance the field.`,
+            published: `2024-11-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}T10:30:00Z`,
+            link: `https://arxiv.org/abs/2024.${String(i + 1).padStart(4, '0')}`
+        });
+    }
+    
+    return mockPapers;
 }
 
 // Display Papers by Domain
@@ -564,6 +657,9 @@ Return JSON:
         console.log('Adding analogies to notebook:', newConnections.length);
         notebookManager.addAnalogies(newConnections);
         console.log('Current notebook state:', notebookManager.getCurrentNotebook());
+        
+        // Auto-save the notebook
+        await autoSaveNotebook();
         
         displayConnections();
         updateStats();
@@ -731,6 +827,9 @@ Return JSON:
         // Track in notebook
         notebookManager.addHypotheses(newHypotheses);
         
+        // Auto-save the notebook
+        await autoSaveNotebook();
+        
         displayHypotheses();
         updateStats();
         hideLoading();
@@ -861,6 +960,9 @@ Return JSON:
         
         // Track in notebook
         notebookManager.addPatterns(result.patterns);
+        
+        // Auto-save the notebook
+        await autoSaveNotebook();
         
         displayPatterns(result.patterns);
         updateStats();
@@ -1057,6 +1159,33 @@ function showUpgradeModal(message) {
     }
 }
 
+// Auto-save notebook after content is added
+async function autoSaveNotebook() {
+    try {
+        if (!notebookManager.hasContent()) {
+            return; // Nothing to save yet
+        }
+
+        const result = await notebookManager.saveNotebook();
+        if (result.success) {
+            console.log('Notebook auto-saved successfully');
+            
+            // Show a subtle success message for first save (new notebook)
+            if (result.message && result.message.includes('saved successfully')) {
+                showToast('📚 Notebook saved automatically!', 'success');
+            }
+            
+            // Update usage stats to reflect any changes in notebook count
+            await updateUsageStats();
+        } else {
+            console.warn('Auto-save failed:', result.error);
+        }
+    } catch (error) {
+        console.error('Auto-save error:', error);
+        // Don't show error toast for auto-save failures to avoid interrupting user flow
+    }
+}
+
 // Notebook Management Functions
 async function startNewNotebook() {
     // Check if user can create a new notebook (free tier limit)
@@ -1099,22 +1228,6 @@ async function startNewNotebook() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
     showToast('Ready to start a new notebook!', 'success');
-}
-
-async function saveCurrentNotebook() {
-    if (!notebookManager.hasContent()) {
-        showToast('No content to save. Generate some discoveries first!', 'warning');
-        return;
-    }
-
-    const result = await notebookManager.saveNotebook();
-    if (result.success) {
-        showToast('✅ Notebook saved successfully!', 'success');
-        // Update usage stats to reflect new notebook count
-        await updateUsageStats();
-    } else {
-        showToast(`❌ Failed to save: ${result.error}`, 'error');
-    }
 }
 
 async function loadNotebooksList() {
