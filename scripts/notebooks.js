@@ -329,8 +329,8 @@ class NotebookManager {
     loadNotebook(notebookId) {
         const notebook = this.savedNotebooks.find(n => n.id === notebookId);
         if (!notebook) {
-            showToast('Notebook not found', 'error');
-            return;
+            console.error('Notebook not found with ID:', notebookId);
+            return null;
         }
 
         // Set as current notebook
@@ -339,9 +339,9 @@ class NotebookManager {
             savedId: notebook.id
         };
 
-        // Update UI to show loaded notebook data
-        showToast(`Loaded notebook: ${notebook.title}`, 'success');
+        // Return the notebook data
         console.log('Loaded notebook:', notebook);
+        return notebook;
     }
 }
 

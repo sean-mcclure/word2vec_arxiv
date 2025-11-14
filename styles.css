@@ -1215,12 +1215,19 @@ body {
     color: var(--primary-dark);
 }
 
-/* Connection header with chord icon */
+/* Connection header with chord icon - Override earlier definition */
 .connection-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.connection-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
 }
 
 .chord-icon {

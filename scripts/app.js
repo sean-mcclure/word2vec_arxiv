@@ -708,8 +708,10 @@ function displayConnections() {
         
         card.innerHTML = `
             <div class="connection-header">
-                <div class="connection-strength">${conn.strength}%</div>
-                <div class="connection-type tooltip" data-tooltip="${getAnalogyTooltip(conn.type)}">${conn.type} Analogy</div>
+                <div class="connection-left">
+                    <div class="connection-strength">${conn.strength}%</div>
+                    <div class="connection-type tooltip" data-tooltip="${getAnalogyTooltip(conn.type)}">${conn.type} Analogy</div>
+                </div>
                 <div class="chord-icon" onclick="showChordDiagram(${idx})" title="View Connection Diagram">🎯</div>
             </div>
             
@@ -1393,7 +1395,13 @@ async function viewNotebook(notebookId) {
     showLoading('Loading notebook...');
     
     try {
-        const notebook = await notebookManager.loadNotebook(notebookId);
+        const notebook = notebookManager.loadNotebook(notebookId);
+        
+        if (!notebook) {
+            hideLoading();
+            showToast('Failed to load notebook: Notebook not found', 'error');
+            return;
+        }
         
         // Load notebook data into state
         state.connections = notebook.analogies || [];
