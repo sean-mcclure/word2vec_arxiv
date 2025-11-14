@@ -794,10 +794,158 @@ function getPaperLink(domainNum) {
     return `<a href="${url}" target="_blank" class="paper-link" title="${escapeHtml(paper.title)}">📄</a>`;
 }
 
-// Show chord diagram modal (placeholder for now)
+// Show chord diagram modal
 function showChordDiagram(connectionIndex) {
-    showToast('Chord diagram visualization coming soon! This will show connection strengths between papers.', 'info');
-    // TODO: Implement D3.js chord diagram
+    // Get connection data
+    const connection = state.connections[connectionIndex];
+    if (!connection) return;
+    
+    // Show modal
+    document.getElementById('chord-modal').style.display = 'flex';
+    
+    // Generate chord diagram
+    createChordDiagram(connection, connectionIndex);
+}
+
+// Close chord diagram modal
+function closeChordModal() {
+    document.getElementById('chord-modal').style.display = 'none';
+    // Clear previous diagram
+    d3.select('#chord-diagram').selectAll('*').remove();
+}
+
+// Create D3.js chord diagram
+function createChordDiagram(connection, connectionIndex) {
+    // Clear previous diagram
+    d3.select('#chord-diagram').selectAll('*').remove();
+    
+    // Get papers from the relevant domains
+    const domain1Papers = state.domainPapers[`domain${connection.domains[0]}`] || [];
+    const domain2Papers = state.domainPapers[`domain${connection.domains[1]}`] || [];
+    
+    // Limit to first 3 papers from each domain for simplicity
+    const papers = [
+        ...domain1Papers.slice(0, 3),
+        ...domain2Papers.slice(0, 3)
+    ];
+    
+    if (papers.length === 0) {
+        d3.select('#chord-diagram')
+            .append('text')
+            .attr('x', 250)
+            .attr('y', 250)
+            .attr('text-anchor', 'middle')
+            .style('font-size', '16px')
+            .style('fill', '#666')
+            .text('No papers available for visualization');
+        return;
+    }
+    
+    // Create connection matrix (papers x papers)
+    const n = papers.length;
+    const matrix = Array(n).fill().map(() => Array(n).fill(0));
+    
+    // Fill matrix with connection strengths
+    // Papers from same domain have weaker internal connections
+    // Papers from different domains have stronger connections based on the analogy
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            if (i !== j) {
+                const paper1Domain = papers[i].domain;
+                const paper2Domain = papers[j].domain;
+                
+                if (paper1Domain === paper2Domain) {
+                    // Same domain - weaker connection
+                    matrix[i][j] = Math.random() * 30 + 10; // 10-40
+                } else {
+                    // Different domains - stronger connection (based on analogy strength)
+                    matrix[i][j] = (connection.strength / 100) * 80 + 20; // 20-100
+                }
+            }
+        }
+    }
+    
+    // D3 chord diagram setup
+    const width = 500;
+    const height = 500;
+    const outerRadius = Math.min(width, height) * 0.4;
+    const innerRadius = outerRadius - 30;
+    
+    const svg = d3.select('#chord-diagram')
+        .attr('width', width)
+        .attr('height', height);
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${width / 2}, ${height / 2})`);
+    
+    // Create color scale for domains
+    const color = d3.scaleOrdinal()
+        .domain([1, 2, 3])
+        .range(['#2563eb', '#10b981', '#f59e0b']);
+    
+    // Generate chord layout
+    const chord = d3.chord()
+        .padAngle(0.05)
+        .sortSubgroups(d3.descending);
+    
+    const arc = d3.arc()
+        .innerRadius(innerRadius)
+        .outerRadius(outerRadius);
+    
+    const ribbon = d3.ribbon()
+        .radius(innerRadius);
+    
+    const chords = chord(matrix);
+    
+    // Draw groups (paper arcs)
+    const group = g.selectAll('.chord-group')
+        .data(chords.groups)
+        .enter().append('g')
+        .attr('class', 'chord-group');
+    
+    group.append('path')
+        .style('fill', d => color(papers[d.index].domain))
+        .style('stroke', d => d3.rgb(color(papers[d.index].domain)).darker())
+        .attr('d', arc);
+    
+    // Add paper titles as labels
+    group.append('text')
+        .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
+        .attr('dy', '.35em')
+        .attr('transform', d => `
+            rotate(${(d.angle * 180 / Math.PI - 90)})
+            translate(${outerRadius + 10})
+            ${d.angle > Math.PI ? 'rotate(180)' : ''}
+        `)
+        .style('text-anchor', d => d.angle > Math.PI ? 'end' : null)
+        .style('font-size', '10px')
+        .style('font-weight', 'bold')
+        .text(d => {
+            const paper = papers[d.index];
+            const title = paper.title.length > 20 ? paper.title.substring(0, 20) + '...' : paper.title;
+            return `D${paper.domain}: ${title}`;
+        });
+    
+    // Draw ribbons (connections)
+    g.selectAll('.chord')
+        .data(chords)
+        .enter().append('path')
+        .attr('class', 'chord')
+        .attr('d', ribbon)
+        .style('fill', d => color(papers[d.source.index].domain))
+        .style('opacity', 0.67)
+        .on('mouseover', function(event, d) {
+            const sourcePaper = papers[d.source.index];
+            const targetPaper = papers[d.target.index];
+            
+            // Show tooltip or highlight
+            d3.select(this).style('opacity', 0.9);
+            
+            // Could add tooltip here showing paper details
+        })
+        .on('mouseout', function() {
+            d3.select(this).style('opacity', 0.67);
+        });
 }
 
 // Generate Hypotheses

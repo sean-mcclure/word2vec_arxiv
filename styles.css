@@ -1247,3 +1247,64 @@ body {
     from { opacity: 0; transform: translateX(-50%) translateY(5px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* Chord Diagram Modal */
+.chord-modal-content {
+    max-width: 600px;
+    width: 90vw;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--danger);
+}
+
+#chord-diagram-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.chord-legend {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+/* Chord diagram styles */
+.chord-group {
+    cursor: pointer;
+}
+
+.chord-group:hover {
+    opacity: 0.8;
+}
+
+.chord {
+    fill-opacity: 0.67;
+    stroke: #000;
+    stroke-width: 0.5px;
+}
+
+.chord:hover {
+    fill-opacity: 0.9;
+}

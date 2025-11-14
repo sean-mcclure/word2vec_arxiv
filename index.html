@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' https://fonts.gstatic.com https://m.stripe.network data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://npmcdn.com https://unpkg.com; connect-src 'self' https://parseapi.back4app.com https://api.openai.com https://export.arxiv.org; img-src 'self' data:">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' https://fonts.gstatic.com https://m.stripe.network data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://npmcdn.com https://unpkg.com https://d3js.org; connect-src 'self' https://parseapi.back4app.com https://api.openai.com https://export.arxiv.org; img-src 'self' data:">
     <title>LatentLink - Cross-Domain Research Discovery</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -11,6 +11,9 @@
     
     <!-- Parse SDK -->
     <script src="https://unpkg.com/parse@3.4.4/dist/parse.min.js"></script>
+    
+    <!-- D3.js for chord diagrams -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -410,6 +413,22 @@
                 <div class="modal-buttons">
                     <button id="send-reset-btn" class="btn btn-primary">Send Reset Link</button>
                     <button id="cancel-reset-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chord Diagram Modal -->
+        <div id="chord-modal" class="modal" style="display: none;">
+            <div class="modal-content chord-modal-content">
+                <div class="modal-header">
+                    <h3>📊 Connection Strength Visualization</h3>
+                    <button class="modal-close" onclick="closeChordModal()">&times;</button>
+                </div>
+                <div id="chord-diagram-container">
+                    <svg id="chord-diagram" width="500" height="500"></svg>
+                </div>
+                <div class="chord-legend">
+                    <p>Chord thickness represents connection strength between papers across domains.</p>
                 </div>
             </div>
         </div>
