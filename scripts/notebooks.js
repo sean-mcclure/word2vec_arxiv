@@ -239,14 +239,15 @@ class NotebookManager {
         try {
             const user = Parse.User.current();
             if (!user) {
-                return { canCreate: false, reason: 'Must be logged in' };
+                return { allowed: false, reason: 'Must be logged in', message: 'Must be logged in' };
             }
 
             // Check if user has premium status
-            const isPremium = user.get('isPremium') || false;
+            const subscriptionStatus = user.get('subscriptionStatus') || 'inactive';
+            const isPremium = subscriptionStatus === 'active';
             
             if (isPremium) {
-                return { canCreate: true, reason: 'Premium user - unlimited notebooks' };
+                return { allowed: true, reason: 'Premium user - unlimited notebooks' };
             }
 
             // For free users, count their existing notebooks
@@ -255,19 +256,92 @@ class NotebookManager {
 
             if (notebookCount >= FREE_LIMIT) {
                 return { 
-                    canCreate: false, 
-                    reason: `Free users are limited to ${FREE_LIMIT} notebooks. Upgrade to premium for unlimited notebooks.` 
+                    allowed: false, 
+                    reason: 'free_tier_limit',
+                    message: `Free users are limited to ${FREE_LIMIT} notebooks. Upgrade to premium for unlimited notebooks.` 
                 };
             }
 
             return { 
-                canCreate: true, 
+                allowed: true, 
                 reason: `Free user - ${notebookCount}/${FREE_LIMIT} notebooks used` 
             };
         } catch (error) {
             console.error('Error checking notebook limit:', error);
-            return { canCreate: true, reason: 'Unable to check limit, allowing creation' };
+            return { allowed: true, reason: 'Unable to check limit, allowing creation' };
         }
+    }
+
+    // Render saved notebooks in the UI
+    renderSavedNotebooks() {
+        const container = document.getElementById('saved-notebooks');
+        if (!container) {
+            console.log('Saved notebooks container not found - UI might not be ready');
+            return;
+        }
+
+        if (!this.savedNotebooks || this.savedNotebooks.length === 0) {
+            container.innerHTML = '<p class="no-notebooks">No saved notebooks yet</p>';
+            return;
+        }
+
+        container.innerHTML = this.savedNotebooks.map(notebook => `
+            <div class="notebook-item" data-id="${notebook.id}">
+                <div class="notebook-header">
+                    <h3>${notebook.title}</h3>
+                    <div class="notebook-actions">
+                        <button class="btn-small load-notebook" data-id="${notebook.id}">Load</button>
+                        <button class="btn-small delete-notebook" data-id="${notebook.id}">Delete</button>
+                    </div>
+                </div>
+                <div class="notebook-meta">
+                    <span>Domains: ${notebook.domains.length}</span>
+                    <span>Connections: ${notebook.connections.length}</span>
+                    <span>Updated: ${new Date(notebook.updatedAt).toLocaleDateString()}</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners for load and delete buttons
+        container.querySelectorAll('.load-notebook').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const notebookId = e.target.getAttribute('data-id');
+                this.loadNotebook(notebookId);
+            });
+        });
+
+        container.querySelectorAll('.delete-notebook').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const notebookId = e.target.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this notebook?')) {
+                    const result = await this.deleteNotebook(notebookId);
+                    if (result.success) {
+                        showToast('Notebook deleted successfully', 'success');
+                    } else {
+                        showToast('Failed to delete notebook: ' + result.error, 'error');
+                    }
+                }
+            });
+        });
+    }
+
+    // Load a specific notebook
+    loadNotebook(notebookId) {
+        const notebook = this.savedNotebooks.find(n => n.id === notebookId);
+        if (!notebook) {
+            showToast('Notebook not found', 'error');
+            return;
+        }
+
+        // Set as current notebook
+        this.currentNotebook = {
+            ...notebook,
+            savedId: notebook.id
+        };
+
+        // Update UI to show loaded notebook data
+        showToast(`Loaded notebook: ${notebook.title}`, 'success');
+        console.log('Loaded notebook:', notebook);
     }
 }
 
