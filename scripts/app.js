@@ -810,14 +810,21 @@ function showChordDiagram(connectionIndex) {
 // Close chord diagram modal
 function closeChordModal() {
     document.getElementById('chord-modal').style.display = 'none';
-    // Clear previous diagram
+    // Clear previous diagram and legend
     d3.select('#chord-diagram').selectAll('*').remove();
+    d3.select('#domain-legend').selectAll('*').remove();
+    // Clean up tooltip
+    if (window.chordTooltip) {
+        window.chordTooltip.remove();
+        window.chordTooltip = null;
+    }
 }
 
 // Create D3.js chord diagram
 function createChordDiagram(connection, connectionIndex) {
-    // Clear previous diagram
+    // Clear previous diagram and legend
     d3.select('#chord-diagram').selectAll('*').remove();
+    d3.select('#domain-legend').selectAll('*').remove();
     
     // Get papers from the relevant domains
     const domain1Papers = state.domainPapers[`domain${connection.domains[0]}`] || [];
@@ -830,10 +837,10 @@ function createChordDiagram(connection, connectionIndex) {
     ];
     
     if (papers.length === 0) {
-        d3.select('#chord-diagram')
-            .append('text')
-            .attr('x', 250)
-            .attr('y', 250)
+        const svg = d3.select('#chord-diagram').attr('width', 400).attr('height', 200);
+        svg.append('text')
+            .attr('x', 200)
+            .attr('y', 100)
             .attr('text-anchor', 'middle')
             .style('font-size', '16px')
             .style('fill', '#666')
@@ -841,13 +848,36 @@ function createChordDiagram(connection, connectionIndex) {
         return;
     }
     
+    // Create domain legend
+    const domains = [...new Set(papers.map(p => p.domain))];
+    const domainNames = domains.map(d => {
+        const firstPaper = papers.find(p => p.domain === d);
+        return firstPaper ? firstPaper.domainName || `Domain ${d}` : `Domain ${d}`;
+    });
+    
+    const color = d3.scaleOrdinal()
+        .domain([1, 2, 3])
+        .range(['#2563eb', '#10b981', '#f59e0b']);
+    
+    // Create legend
+    const legend = d3.select('#domain-legend');
+    domains.forEach((domain, i) => {
+        const legendItem = legend.append('div')
+            .attr('class', 'legend-item');
+        
+        legendItem.append('div')
+            .attr('class', 'legend-color')
+            .style('background-color', color(domain));
+        
+        legendItem.append('span')
+            .text(`${domainNames[i]}`);
+    });
+    
     // Create connection matrix (papers x papers)
     const n = papers.length;
     const matrix = Array(n).fill().map(() => Array(n).fill(0));
     
     // Fill matrix with connection strengths
-    // Papers from same domain have weaker internal connections
-    // Papers from different domains have stronger connections based on the analogy
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
             if (i !== j) {
@@ -865,11 +895,15 @@ function createChordDiagram(connection, connectionIndex) {
         }
     }
     
-    // D3 chord diagram setup
-    const width = 500;
-    const height = 500;
-    const outerRadius = Math.min(width, height) * 0.4;
-    const innerRadius = outerRadius - 30;
+    // Responsive sizing based on viewport
+    const containerWidth = Math.min(window.innerWidth * 0.8, 600);
+    const containerHeight = Math.min(window.innerHeight * 0.6, 500);
+    const size = Math.min(containerWidth, containerHeight, 400);
+    
+    const width = size;
+    const height = size;
+    const outerRadius = Math.min(width, height) * 0.35;
+    const innerRadius = outerRadius - 25;
     
     const svg = d3.select('#chord-diagram')
         .attr('width', width)
@@ -878,10 +912,10 @@ function createChordDiagram(connection, connectionIndex) {
     const g = svg.append('g')
         .attr('transform', `translate(${width / 2}, ${height / 2})`);
     
-    // Create color scale for domains
-    const color = d3.scaleOrdinal()
-        .domain([1, 2, 3])
-        .range(['#2563eb', '#10b981', '#f59e0b']);
+    // Create tooltip div
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'chord-tooltip')
+        .style('opacity', 0);
     
     // Generate chord layout
     const chord = d3.chord()
@@ -906,24 +940,40 @@ function createChordDiagram(connection, connectionIndex) {
     group.append('path')
         .style('fill', d => color(papers[d.index].domain))
         .style('stroke', d => d3.rgb(color(papers[d.index].domain)).darker())
-        .attr('d', arc);
+        .attr('d', arc)
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+            const paper = papers[d.index];
+            tooltip.transition().duration(200).style('opacity', .9);
+            tooltip.html(`<strong>${paper.title}</strong><br/>Domain: ${paper.domainName}<br/>Click to open paper`)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.transition().duration(500).style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            const paper = papers[d.index];
+            const arxivId = paper.id.split('/').pop();
+            window.open(`https://arxiv.org/abs/${arxivId}`, '_blank');
+        });
     
-    // Add paper titles as labels
+    // Add shortened labels (since we have tooltips for full titles)
     group.append('text')
         .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
         .attr('dy', '.35em')
         .attr('transform', d => `
             rotate(${(d.angle * 180 / Math.PI - 90)})
-            translate(${outerRadius + 10})
+            translate(${outerRadius + 8})
             ${d.angle > Math.PI ? 'rotate(180)' : ''}
         `)
         .style('text-anchor', d => d.angle > Math.PI ? 'end' : null)
-        .style('font-size', '10px')
+        .style('font-size', '8px')
         .style('font-weight', 'bold')
+        .style('fill', '#666')
         .text(d => {
             const paper = papers[d.index];
-            const title = paper.title.length > 20 ? paper.title.substring(0, 20) + '...' : paper.title;
-            return `D${paper.domain}: ${title}`;
+            return `P${d.index + 1}`;
         });
     
     // Draw ribbons (connections)
@@ -937,15 +987,24 @@ function createChordDiagram(connection, connectionIndex) {
         .on('mouseover', function(event, d) {
             const sourcePaper = papers[d.source.index];
             const targetPaper = papers[d.target.index];
+            const strength = Math.round(matrix[d.source.index][d.target.index]);
             
-            // Show tooltip or highlight
             d3.select(this).style('opacity', 0.9);
-            
-            // Could add tooltip here showing paper details
+            tooltip.transition().duration(200).style('opacity', .9);
+            tooltip.html(`<strong>Connection Strength: ${strength}%</strong><br/>
+                         ${sourcePaper.title.substring(0, 40)}...<br/>
+                         ↔<br/>
+                         ${targetPaper.title.substring(0, 40)}...`)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
         })
         .on('mouseout', function() {
             d3.select(this).style('opacity', 0.67);
+            tooltip.transition().duration(500).style('opacity', 0);
         });
+    
+    // Clean up tooltip when modal is closed
+    window.chordTooltip = tooltip;
 }
 
 // Generate Hypotheses

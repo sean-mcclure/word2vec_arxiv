@@ -1250,8 +1250,10 @@ body {
 
 /* Chord Diagram Modal */
 .chord-modal-content {
-    max-width: 600px;
-    width: 90vw;
+    max-width: min(90vw, 700px);
+    max-height: 90vh;
+    width: auto;
+    overflow-y: auto;
 }
 
 .modal-header {
@@ -1280,14 +1282,56 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px 0;
+    margin: 15px 0;
 }
 
-.chord-legend {
+.chord-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.domain-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.chord-description {
     text-align: center;
     color: var(--text-secondary);
-    font-size: 14px;
-    margin-top: 15px;
+    font-size: 13px;
+}
+
+/* Tooltip for chord diagram */
+.chord-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 10000;
+    max-width: 200px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 /* Chord diagram styles */

@@ -425,10 +425,13 @@
                     <button class="modal-close" onclick="closeChordModal()">&times;</button>
                 </div>
                 <div id="chord-diagram-container">
-                    <svg id="chord-diagram" width="500" height="500"></svg>
+                    <svg id="chord-diagram"></svg>
                 </div>
-                <div class="chord-legend">
-                    <p>Chord thickness represents connection strength between papers across domains.</p>
+                <div class="chord-info">
+                    <div id="domain-legend" class="domain-legend"></div>
+                    <div class="chord-description">
+                        <p>Chord thickness represents connection strength between papers. Hover over arcs to see full paper titles.</p>
+                    </div>
                 </div>
             </div>
         </div>
