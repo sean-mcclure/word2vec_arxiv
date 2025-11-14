@@ -763,16 +763,22 @@ function displayConnections() {
 // Get tooltip text for analogy types
 function getAnalogyTooltip(type) {
     const tooltips = {
-        'Structural': 'Focuses on similar organizational patterns, hierarchies, or architectural arrangements between different domains',
-        'Functional': 'Compares how different systems perform similar roles, processes, or operations despite different implementations',
-        'Causal': 'Examines similar cause-and-effect relationships, mechanisms, or chains of events across domains',
-        'Surface': 'Based on superficial similarities in appearance, terminology, or observable features without deep structural alignment',
-        'Systematic': 'Involves comprehensive mapping of relationships, rules, and interactions between multiple elements across domains',
-        'Pragmatic': 'Focuses on practical applications, utility, or problem-solving approaches that work similarly in different contexts',
-        'Relational': 'Emphasizes similar relationships, proportions, or interactions between elements rather than the elements themselves',
-        'Transformational': 'Compares similar processes of change, development, or transformation patterns across different domains'
+        'Structural': 'Similar organizational patterns, hierarchies, or architectural arrangements (e.g., neural network layers ↔ corporate management hierarchy)',
+        'Functional': 'Same roles or purposes achieved through different mechanisms (e.g., bird wings ↔ airplane wings both enable flight)',
+        'Causal': 'Similar cause-and-effect chains or mechanisms (e.g., viral spread in networks ↔ information propagation in social media)',
+        'Surface': 'Superficial similarities in appearance or terminology without deeper structural alignment (often misleading)',
+        'Systematic': 'Comprehensive mapping of multiple relationships and rules (e.g., atomic structure ↔ solar system dynamics)',
+        'Pragmatic': 'Similar practical problem-solving approaches or utilities (e.g., ant colony optimization ↔ traffic routing algorithms)',
+        'Relational': 'Similar relationships or proportions between elements (e.g., predator-prey ratios ↔ market competition dynamics)',
+        'Transformational': 'Similar change or development processes (e.g., biological evolution ↔ technological innovation cycles)',
+        'Mechanistic': 'Similar underlying mechanisms or operational principles (e.g., enzyme catalysis ↔ industrial catalytic processes)',
+        'Dynamical': 'Similar temporal behaviors, oscillations, or dynamic patterns (e.g., pendulum motion ↔ market cycles)',
+        'Mathematical': 'Shared mathematical models or equations (e.g., exponential growth in populations ↔ compound interest)',
+        'Behavioral': 'Similar behavioral patterns or responses (e.g., flocking behavior ↔ crowd dynamics)',
+        'Geometric': 'Similar spatial arrangements or geometric properties (e.g., honeycomb structure ↔ optimal packing solutions)',
+        'Energetic': 'Similar energy flows, conservation principles, or thermodynamic properties (e.g., metabolic pathways ↔ economic resource flows)'
     };
-    return tooltips[type] || 'A type of analogical relationship connecting concepts across different domains';
+    return tooltips[type] || `${type} analogy - comparing similar patterns or principles across different domains`;
 }
 
 // Get clickable paper link for a domain
