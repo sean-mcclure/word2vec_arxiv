@@ -258,7 +258,7 @@ class NotebookManager {
                 return { 
                     allowed: false, 
                     reason: 'free_tier_limit',
-                    message: `Free users are limited to ${FREE_LIMIT} notebooks. Upgrade to premium for unlimited notebooks.` 
+                    message: `Free users are limited to ${FREE_LIMIT} notebooks. Upgrade to premium for 100 notebooks per month.` 
                 };
             }
 

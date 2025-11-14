@@ -1162,3 +1162,81 @@ body {
     color: var(--danger);
     text-align: center;
 }
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: normal;
+    width: 250px;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    animation: fadeIn 0.3s ease;
+}
+
+.tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 92%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--text-primary);
+    z-index: 1000;
+}
+
+/* Paper links */
+.paper-link {
+    color: var(--primary);
+    text-decoration: none;
+    margin-left: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.paper-link:hover {
+    transform: scale(1.1);
+    color: var(--primary-dark);
+}
+
+/* Connection header with chord icon */
+.connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.chord-icon {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.chord-icon:hover {
+    background: rgba(37, 99, 235, 0.1);
+    transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(5px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

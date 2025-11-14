@@ -333,6 +333,14 @@ function setupEventListeners() {
             document.getElementById('papers-count').textContent = e.target.value;
         });
     }
+    
+    // Add category change listeners to update placeholders
+    document.querySelectorAll('.domain-category').forEach(select => {
+        select.addEventListener('change', (e) => {
+            const domainNum = e.target.getAttribute('data-domain');
+            updatePlaceholder(parseInt(domainNum), e.target.value);
+        });
+    });
 }
 
 // Cross-Domain Discovery
@@ -701,7 +709,8 @@ function displayConnections() {
         card.innerHTML = `
             <div class="connection-header">
                 <div class="connection-strength">${conn.strength}%</div>
-                <div class="connection-type">${conn.type} Analogy</div>
+                <div class="connection-type tooltip" data-tooltip="${getAnalogyTooltip(conn.type)}">${conn.type} Analogy</div>
+                <div class="chord-icon" onclick="showChordDiagram(${idx})" title="View Connection Diagram">🎯</div>
             </div>
             
             <div class="connection-domains">
@@ -715,12 +724,12 @@ function displayConnections() {
             
             <div class="mechanism-comparison">
                 <div class="mechanism-box">
-                    <h5>In Domain ${conn.domains[0]}</h5>
+                    <h5>In Domain ${conn.domains[0]} ${getPaperLink(conn.domains[0])}</h5>
                     <p>${escapeHtml(conn.domain1_manifestation)}</p>
                 </div>
                 <div class="arrow">⟷</div>
                 <div class="mechanism-box">
-                    <h5>In Domain ${conn.domains[1]}</h5>
+                    <h5>In Domain ${conn.domains[1]} ${getPaperLink(conn.domains[1])}</h5>
                     <p>${escapeHtml(conn.domain2_manifestation || conn.domain3_manifestation || 'N/A')}</p>
                 </div>
             </div>
@@ -747,6 +756,40 @@ function displayConnections() {
     });
     
     document.getElementById('discovery-section').style.display = 'block';
+}
+
+// Get tooltip text for analogy types
+function getAnalogyTooltip(type) {
+    const tooltips = {
+        'Structural': 'Focuses on similar organizational patterns, hierarchies, or architectural arrangements between different domains',
+        'Functional': 'Compares how different systems perform similar roles, processes, or operations despite different implementations',
+        'Causal': 'Examines similar cause-and-effect relationships, mechanisms, or chains of events across domains',
+        'Surface': 'Based on superficial similarities in appearance, terminology, or observable features without deep structural alignment',
+        'Systematic': 'Involves comprehensive mapping of relationships, rules, and interactions between multiple elements across domains',
+        'Pragmatic': 'Focuses on practical applications, utility, or problem-solving approaches that work similarly in different contexts',
+        'Relational': 'Emphasizes similar relationships, proportions, or interactions between elements rather than the elements themselves',
+        'Transformational': 'Compares similar processes of change, development, or transformation patterns across different domains'
+    };
+    return tooltips[type] || 'A type of analogical relationship connecting concepts across different domains';
+}
+
+// Get clickable paper link for a domain
+function getPaperLink(domainNum) {
+    const papers = state.domainPapers[`domain${domainNum}`];
+    if (!papers || papers.length === 0) return '';
+    
+    // Get the first paper as the representative paper for this connection
+    const paper = papers[0];
+    const arxivId = paper.id.split('/').pop(); // Extract arXiv ID
+    const url = `https://arxiv.org/abs/${arxivId}`;
+    
+    return `<a href="${url}" target="_blank" class="paper-link" title="${escapeHtml(paper.title)}">📄</a>`;
+}
+
+// Show chord diagram modal (placeholder for now)
+function showChordDiagram(connectionIndex) {
+    showToast('Chord diagram visualization coming soon! This will show connection strengths between papers.', 'info');
+    // TODO: Implement D3.js chord diagram
 }
 
 // Generate Hypotheses
@@ -1208,6 +1251,9 @@ async function startNewNotebook() {
     state.connections = [];
     state.hypotheses = [];
     
+    // Reset domain inputs
+    resetDomainInputs();
+    
     // Hide result sections
     document.getElementById('results-section').style.display = 'none';
     document.getElementById('discovery-section').style.display = 'none';
@@ -1230,12 +1276,77 @@ async function startNewNotebook() {
     showToast('Ready to start a new notebook!', 'success');
 }
 
+// Reset domain inputs to default state
+function resetDomainInputs() {
+    // Reset domain 1 and 2 to first option
+    const domain1Select = document.querySelector('.domain-category[data-domain="1"]');
+    const domain2Select = document.querySelector('.domain-category[data-domain="2"]');
+    const domain3Select = document.querySelector('.domain-category[data-domain="3"]');
+    
+    if (domain1Select && domain1Select.options.length > 0) {
+        domain1Select.selectedIndex = 0;
+        updatePlaceholder(1, domain1Select.value);
+    }
+    if (domain2Select && domain2Select.options.length > 0) {
+        domain2Select.selectedIndex = 0;
+        updatePlaceholder(2, domain2Select.value);
+    }
+    if (domain3Select) {
+        // Set domain 3 to "none" option (should be the last option)
+        const noneOption = Array.from(domain3Select.options).find(opt => 
+            opt.value === '' || opt.textContent.toLowerCase().includes('none')
+        );
+        if (noneOption) {
+            domain3Select.selectedIndex = noneOption.index;
+        } else {
+            domain3Select.selectedIndex = domain3Select.options.length - 1; // Fallback to last option
+        }
+        updatePlaceholder(3, domain3Select.value);
+    }
+    
+    // Clear all query inputs and reset placeholders
+    for (let i = 1; i <= 3; i++) {
+        const queryInput = document.querySelector(`.domain-query[data-domain="${i}"]`);
+        if (queryInput) {
+            queryInput.value = '';
+        }
+    }
+}
+
+// Update placeholder text based on selected category
+function updatePlaceholder(domainNum, category) {
+    const queryInput = document.querySelector(`.domain-query[data-domain="${domainNum}"]`);
+    if (!queryInput) return;
+    
+    const placeholders = {
+        'cs.AI': 'e.g., neural networks, machine learning, computer vision',
+        'cs.CL': 'e.g., natural language processing, text analysis, chatbots',
+        'cs.LG': 'e.g., deep learning, reinforcement learning, model training',
+        'physics.bio-ph': 'e.g., protein folding, cellular dynamics, biomechanics',
+        'q-bio.BM': 'e.g., molecular interactions, drug discovery, biochemistry',
+        'q-bio.NC': 'e.g., brain networks, neural computation, cognition',
+        'econ.EM': 'e.g., market analysis, economic modeling, forecasting',
+        'stat.ML': 'e.g., statistical learning, data mining, pattern recognition',
+        'math.OC': 'e.g., optimization algorithms, control theory, operations research',
+        'cond-mat.stat-mech': 'e.g., phase transitions, complex systems, statistical physics'
+    };
+    
+    queryInput.placeholder = placeholders[category] || 'Enter your research interest or keywords';
+}
+
 async function loadNotebooksList() {
     const container = document.getElementById('notebooks-list');
     container.innerHTML = '<div class="loading-text">Loading notebooks...</div>';
 
     try {
-        const notebooks = await notebookManager.loadNotebooks();
+        const result = await notebookManager.loadNotebooks();
+        
+        if (!result.success) {
+            container.innerHTML = `<div class="error-text">Failed to load notebooks: ${result.error}</div>`;
+            return;
+        }
+        
+        const notebooks = notebookManager.savedNotebooks; // Get the actual notebooks array
         
         if (notebooks.length === 0) {
             container.innerHTML = `
