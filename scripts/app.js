@@ -798,7 +798,13 @@ function getPaperLink(domainNum) {
 function showChordDiagram(connectionIndex) {
     // Get connection data
     const connection = state.connections[connectionIndex];
-    if (!connection) return;
+    if (!connection) {
+        console.error('No connection found at index:', connectionIndex);
+        return;
+    }
+    
+    console.log('Connection data:', connection);
+    console.log('Current state.domainPapers:', state.domainPapers);
     
     // Show modal
     document.getElementById('chord-modal').style.display = 'flex';
@@ -827,14 +833,21 @@ function createChordDiagram(connection, connectionIndex) {
     d3.select('#domain-legend').selectAll('*').remove();
     
     // Get papers from the relevant domains
+    console.log('Looking for domains:', connection.domains);
+    console.log('Available domainPapers keys:', Object.keys(state.domainPapers));
+    
     const domain1Papers = state.domainPapers[`domain${connection.domains[0]}`] || [];
     const domain2Papers = state.domainPapers[`domain${connection.domains[1]}`] || [];
+    
+    console.log('Domain1Papers:', domain1Papers.length, 'Domain2Papers:', domain2Papers.length);
     
     // Limit to first 3 papers from each domain for simplicity
     const papers = [
         ...domain1Papers.slice(0, 3),
         ...domain2Papers.slice(0, 3)
     ];
+    
+    console.log('Total papers for diagram:', papers.length);
     
     if (papers.length === 0) {
         const svg = d3.select('#chord-diagram').attr('width', 400).attr('height', 200);
