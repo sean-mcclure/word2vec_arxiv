@@ -1325,13 +1325,20 @@ body {
     position: absolute;
     background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
     pointer-events: none;
     z-index: 10000;
-    max-width: 200px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 350px;
+    min-width: 200px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    line-height: 1.4;
+}
+
+.chord-tooltip em {
+    font-style: italic;
+    color: #e2e8f0;
 }
 
 /* Chord diagram styles */

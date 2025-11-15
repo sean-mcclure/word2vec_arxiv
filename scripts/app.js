@@ -404,6 +404,16 @@ async function discoverConnections() {
         document.getElementById('action-section').style.display = 'block';
         updateStats();
         
+        // Auto-save notebook with paper data immediately after papers are loaded
+        console.log('Auto-saving notebook with paper data...');
+        // Force save even if no connections yet - we need to save the paper data
+        const result = await notebookManager.saveNotebook();
+        if (result.success) {
+            console.log('Paper data saved successfully:', result.message);
+        } else {
+            console.error('Failed to save paper data:', result.error);
+        }
+        
         // Auto-start finding analogies
         setTimeout(() => findDeepAnalogies(), 1000);
         
@@ -521,7 +531,12 @@ function generateMockPapers(category, query, maxResults) {
 
 // Display Papers by Domain
 function displayPapersByDomain() {
+    console.log('displayPapersByDomain called with state.domainPapers:', state.domainPapers);
     const container = document.getElementById('papers-by-domain');
+    if (!container) {
+        console.error('papers-by-domain container not found!');
+        return;
+    }
     container.innerHTML = '';
     
     for (const [key, papers] of Object.entries(state.domainPapers)) {
@@ -848,22 +863,58 @@ function createChordDiagram(connection, connectionIndex) {
         console.log('No papers in state, trying to get from DOM...');
         
         // Try to extract papers from the displayed papers section
-        const paperElements = document.querySelectorAll('.paper-card');
-        const fallbackPapers = Array.from(paperElements).map(el => {
-            const titleEl = el.querySelector('.paper-title');
-            const domainEl = el.querySelector('.paper-domain');
-            if (titleEl && domainEl) {
-                return {
-                    title: titleEl.textContent,
-                    id: titleEl.href ? titleEl.href.split('/').pop() : 'unknown',
-                    domain: parseInt(domainEl.textContent.match(/\d+/)?.[0] || '1'),
-                    domainName: domainEl.textContent
-                };
+        const fallbackPapers = [];
+        
+        // Debug: Check what containers exist
+        console.log('Looking for paper containers...');
+        const allContainers = document.querySelectorAll('[id*="papers"]');
+        console.log('Found containers:', Array.from(allContainers).map(el => el.id));
+        
+        // Get papers from each domain section - use the correct ID format
+        for (let domainNum = 1; domainNum <= 3; domainNum++) {
+            const domainKey = `domain${domainNum}`;
+            const containerId = `papers-${domainKey}`;  // This matches papers-${key} from displayPapersByDomain
+            
+            const domainContainer = document.getElementById(containerId);
+            console.log(`Looking for container: ${containerId}, found:`, !!domainContainer);
+            
+            if (domainContainer) {
+                const paperElements = domainContainer.querySelectorAll('.mini-paper-card');
+                console.log(`Domain ${domainNum} has ${paperElements.length} paper cards`);
+                
+                Array.from(paperElements).forEach(el => {
+                    const titleLinkEl = el.querySelector('.paper-title a');
+                    if (titleLinkEl) {
+                        const href = titleLinkEl.href;
+                        const arxivId = href ? href.split('/').pop() : 'unknown';
+                        console.log(`Found paper: ${titleLinkEl.textContent.trim()}`);
+                        fallbackPapers.push({
+                            title: titleLinkEl.textContent.trim(),
+                            id: arxivId,
+                            link: href,
+                            domain: domainNum,
+                            domainName: `Domain ${domainNum}`
+                        });
+                    }
+                });
+            } else {
+                console.log(`No container found for domain ${domainNum}`);
             }
-            return null;
-        }).filter(Boolean);
+        }
         
         console.log('Found fallback papers:', fallbackPapers);
+        
+        // If still no papers found after DOM extraction, show error
+        if (fallbackPapers.length === 0) {
+            console.error('No papers found for chord diagram. This notebook may have incomplete data.');
+            document.getElementById('chord-diagram').innerHTML = 
+                '<div style="padding: 40px; text-align: center; color: #666;">' +
+                '<h3>No Papers Available</h3>' +
+                '<p>This notebook appears to have incomplete paper data.</p>' +
+                '<p>Try running a fresh discovery session to generate a new chord diagram.</p>' +
+                '</div>';
+            return;
+        }
         
         // Separate by domain
         domain1Papers = fallbackPapers.filter(p => p.domain === connection.domains[0]);
@@ -1036,9 +1087,9 @@ function createChordDiagram(connection, connectionIndex) {
             d3.select(this).style('opacity', 0.9);
             tooltip.transition().duration(200).style('opacity', .9);
             tooltip.html(`<strong>Connection Strength: ${strength}%</strong><br/>
-                         ${sourcePaper.title.substring(0, 40)}...<br/>
+                         <em>${sourcePaper.title}</em><br/>
                          ↔<br/>
-                         ${targetPaper.title.substring(0, 40)}...`)
+                         <em>${targetPaper.title}</em>`)
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 10) + 'px');
         })
@@ -1656,7 +1707,7 @@ async function viewNotebook(notebookId) {
     showLoading('Loading notebook...');
     
     try {
-        const notebook = notebookManager.loadNotebook(notebookId);
+        const notebook = await notebookManager.loadNotebook(notebookId);
         
         if (!notebook) {
             hideLoading();
@@ -1667,6 +1718,14 @@ async function viewNotebook(notebookId) {
         // Load notebook data into state
         state.connections = notebook.analogies || [];
         state.hypotheses = notebook.hypotheses || [];
+        
+        // Restore the original paper data for chord diagrams
+        if (notebook.domainPapers) {
+            state.domainPapers = notebook.domainPapers;
+            console.log('Restored domainPapers from notebook:', Object.keys(state.domainPapers), state.domainPapers);
+        } else {
+            console.log('No domainPapers found in notebook:', notebook);
+        }
         
         // Restore the notebook to current session with generation counts
         notebookManager.currentNotebook = {
@@ -1686,6 +1745,34 @@ async function viewNotebook(notebookId) {
         
         // Switch to main app view
         showMainApp();
+        
+        // Display the original papers if they were restored
+        if (notebook.domainPapers && Object.keys(notebook.domainPapers).length > 0) {
+            console.log('Displaying restored papers from notebook');
+            // Make sure papers section is visible
+            const papersSection = document.getElementById('papers-section');
+            if (papersSection) {
+                papersSection.style.display = 'block';
+            }
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                displayPapersByDomain();
+            }, 100);
+        } else {
+            console.log('Legacy notebook without paper data - showing notice');
+            // Show a helpful message for legacy notebooks
+            const papersSection = document.getElementById('papers-section');
+            if (papersSection) {
+                papersSection.style.display = 'block';
+                papersSection.innerHTML = `
+                    <div style="padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007acc; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #333;">📚 Legacy Notebook</h3>
+                        <p style="color: #666; margin-bottom: 10px;">This notebook was created before paper data was saved. You can still view all connections and hypotheses, but the original papers and chord diagrams are not available.</p>
+                        <p style="color: #666; margin: 0;"><strong>Tip:</strong> Create a new discovery session to get the full experience with interactive chord diagrams!</p>
+                    </div>
+                `;
+            }
+        }
         
         // Display notebook content
         if (state.connections.length > 0) {

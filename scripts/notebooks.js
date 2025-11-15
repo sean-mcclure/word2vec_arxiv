@@ -95,6 +95,14 @@ class NotebookManager {
             notebook.set('analogies', this.currentNotebook.analogies);
             notebook.set('patterns', this.currentNotebook.patterns);
             notebook.set('hypotheses', this.currentNotebook.hypotheses);
+            // Save the actual paper data so chord diagrams work with real papers
+            const paperData = window.state?.domainPapers || {};
+            console.log('Attempting to save domainPapers to notebook:');
+            console.log('- window.state exists:', !!window.state);
+            console.log('- domainPapers keys:', Object.keys(paperData));
+            console.log('- domainPapers data:', paperData);
+            console.log('- Total paper count:', Object.values(paperData).reduce((total, papers) => total + (papers?.length || 0), 0));
+            notebook.set('domainPapers', paperData);
             
             // Only set user for new notebooks (no ACL needed with public permissions)
             if (!isUpdate) {
@@ -147,6 +155,7 @@ class NotebookManager {
                 analogies: notebook.get('analogies') || [],
                 patterns: notebook.get('patterns') || [],
                 hypotheses: notebook.get('hypotheses') || [],
+                domainPapers: notebook.get('domainPapers') || {},
                 createdAt: notebook.get('createdAt'),
                 updatedAt: notebook.get('updatedAt')
             }));
