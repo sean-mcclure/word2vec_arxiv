@@ -796,10 +796,14 @@ function getPaperLink(domainNum) {
 
 // Show chord diagram modal
 function showChordDiagram(connectionIndex) {
+    console.log('showChordDiagram called with index:', connectionIndex);
+    
     // Get connection data
     const connection = state.connections[connectionIndex];
     if (!connection) {
         console.error('No connection found at index:', connectionIndex);
+        console.log('Available connections:', state.connections);
+        alert('No connection found at index: ' + connectionIndex);
         return;
     }
     
@@ -1019,6 +1023,10 @@ function createChordDiagram(connection, connectionIndex) {
     // Clean up tooltip when modal is closed
     window.chordTooltip = tooltip;
 }
+
+// Make functions available globally for inline onclick handlers
+window.showChordDiagram = showChordDiagram;
+window.closeChordModal = closeChordModal;
 
 // Generate Hypotheses
 async function generateHypotheses() {
