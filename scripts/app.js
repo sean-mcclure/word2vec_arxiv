@@ -840,8 +840,35 @@ function createChordDiagram(connection, connectionIndex) {
     console.log('Looking for domains:', connection.domains);
     console.log('Available domainPapers keys:', Object.keys(state.domainPapers));
     
-    const domain1Papers = state.domainPapers[`domain${connection.domains[0]}`] || [];
-    const domain2Papers = state.domainPapers[`domain${connection.domains[1]}`] || [];
+    let domain1Papers = state.domainPapers[`domain${connection.domains[0]}`] || [];
+    let domain2Papers = state.domainPapers[`domain${connection.domains[1]}`] || [];
+    
+    // Fallback: try to get papers from displayed DOM elements if state is empty
+    if (domain1Papers.length === 0 && domain2Papers.length === 0) {
+        console.log('No papers in state, trying to get from DOM...');
+        
+        // Try to extract papers from the displayed papers section
+        const paperElements = document.querySelectorAll('.paper-card');
+        const fallbackPapers = Array.from(paperElements).map(el => {
+            const titleEl = el.querySelector('.paper-title');
+            const domainEl = el.querySelector('.paper-domain');
+            if (titleEl && domainEl) {
+                return {
+                    title: titleEl.textContent,
+                    id: titleEl.href ? titleEl.href.split('/').pop() : 'unknown',
+                    domain: parseInt(domainEl.textContent.match(/\d+/)?.[0] || '1'),
+                    domainName: domainEl.textContent
+                };
+            }
+            return null;
+        }).filter(Boolean);
+        
+        console.log('Found fallback papers:', fallbackPapers);
+        
+        // Separate by domain
+        domain1Papers = fallbackPapers.filter(p => p.domain === connection.domains[0]);
+        domain2Papers = fallbackPapers.filter(p => p.domain === connection.domains[1]);
+    }
     
     console.log('Domain1Papers:', domain1Papers.length, 'Domain2Papers:', domain2Papers.length);
     
